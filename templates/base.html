@@ -74,28 +74,48 @@
         }
         
         /* Menú lateral offcanvas */
+        .offcanvas {
+            max-width: 280px;
+        }
+        
         .offcanvas-header {
             background: linear-gradient(135deg, var(--color-verde-oscuro) 0%, var(--color-verde-principal) 100%);
+            padding: 1.5rem;
+        }
+        
+        .offcanvas-title {
+            font-size: 1.25rem;
+            font-weight: 600;
         }
         
         .list-group-item {
             border-left: 4px solid transparent;
             transition: all 0.3s ease;
-        }
-        
-        .list-group-item:hover {
-            background-color: #f8f9fa;
-            border-left-color: var(--color-verde-principal);
-            transform: translateX(5px);
+            padding: 0;
+            border-radius: 0;
         }
         
         .list-group-item a {
             font-weight: 500;
             color: var(--color-negro) !important;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+            border-left-color: var(--color-verde-principal);
         }
         
         .list-group-item a:hover {
             color: var(--color-verde-principal) !important;
+        }
+        
+        .categoria-icon {
+            font-size: 1.5rem;
+            min-width: 24px;
         }
         
         /* Iconos de categorías con colores temáticos */
@@ -421,6 +441,309 @@
             background-color: var(--color-verde-oscuro);
             transform: scale(1.1);
         }
+        
+        /* ========================================
+           RESPONSIVE DESIGN - MEDIA QUERIES
+           ======================================== */
+        
+        /* Tablets y pantallas medianas (768px - 991px) */
+        @media (max-width: 991px) {
+            .carousel-inner {
+                height: 300px !important;
+            }
+            
+            .carousel-item img {
+                height: 300px !important;
+            }
+            
+            .carousel-caption h5 {
+                font-size: 1.2rem;
+            }
+            
+            .carousel-caption p {
+                font-size: 0.9rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+            
+            /* Navbar responsive */
+            .navbar-nav .nav-link {
+                padding: 0.75rem 1rem;
+            }
+            
+            .offcanvas {
+                max-width: 300px;
+            }
+            
+            .card {
+                margin-bottom: 20px;
+            }
+        }
+        
+        /* Móviles grandes (576px - 767px) */
+        @media (max-width: 767px) {
+            .carousel-inner {
+                height: 250px !important;
+            }
+            
+            .carousel-item img {
+                height: 250px !important;
+            }
+            
+            .carousel-caption {
+                padding: 10px !important;
+            }
+            
+            .carousel-caption h5 {
+                font-size: 1rem;
+                margin-bottom: 5px;
+            }
+            
+            .carousel-caption p {
+                font-size: 0.8rem;
+                display: none; /* Ocultar descripción en móviles */
+            }
+            
+            /* Navbar responsive para móvil */
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            
+            .navbar-toggler {
+                padding: 0.5rem;
+                font-size: 1rem;
+            }
+            
+            /* Ajustar barra de búsqueda */
+            .search-input {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .btn-search {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            /* Offcanvas más ancho en móvil */
+            .offcanvas {
+                max-width: 85%;
+            }
+            
+            .list-group-item a {
+                padding: 1.25rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .categoria-icon {
+                font-size: 1.75rem;
+            }
+            
+            /* Cards en columna completa */
+            .col-md-3, .col-md-4, .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            
+            .card-img-top {
+                height: 200px !important;
+            }
+            
+            /* Botones más grandes para móvil */
+            .btn {
+                padding: 10px 15px;
+                font-size: 0.95rem;
+            }
+            
+            /* Chatbot más pequeño */
+            .chatbot-button {
+                width: 50px !important;
+                height: 50px !important;
+                font-size: 1.5rem;
+            }
+            
+            .chatbot-window {
+                width: 95% !important;
+                height: 70vh !important;
+                right: 2.5% !important;
+                bottom: 70px !important;
+            }
+            
+            /* Footer más compacto */
+            footer .social-icon {
+                width: 40px;
+                height: 40px;
+                line-height: 40px;
+                margin: 5px;
+            }
+            
+            footer .social-icon i {
+                line-height: 40px;
+                font-size: 1.2rem;
+            }
+            
+            /* Ajustar padding del container */
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+        }
+        
+        /* Móviles pequeños (menos de 576px) */
+        @media (max-width: 575px) {
+            .carousel-inner {
+                height: 200px !important;
+            }
+            
+            .carousel-item img {
+                height: 200px !important;
+            }
+            
+            .carousel-caption {
+                display: none !important; /* Ocultar completamente en móviles pequeños */
+            }
+            
+            /* Navbar ultra compacto */
+            .navbar {
+                padding: 0.4rem 0.75rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1rem;
+            }
+            
+            .navbar-toggler {
+                padding: 0.4rem;
+                font-size: 0.9rem;
+            }
+            
+            .btn-menu-hamburguesa {
+                font-size: 0.85rem;
+                padding: 5px 10px;
+            }
+            
+            /* Barra de búsqueda más compacta */
+            .search-input {
+                font-size: 0.85rem;
+                padding: 0.4rem 0.6rem;
+            }
+            
+            .btn-search {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.85rem;
+            }
+            
+            /* Offcanvas ancho completo en móvil pequeño */
+            .offcanvas {
+                max-width: 90%;
+            }
+            
+            .offcanvas-header {
+                padding: 1.25rem;
+            }
+            
+            .offcanvas-title {
+                font-size: 1.1rem;
+            }
+            
+            .list-group-item a {
+                padding: 1rem 1.25rem;
+                font-size: 0.95rem;
+            }
+            
+            .categoria-icon {
+                font-size: 1.5rem;
+            }
+            
+            /* Productos en grid de 2 columnas */
+            .row > div[class*="col-"] {
+                flex: 0 0 50%;
+                max-width: 50%;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+            
+            .card {
+                margin-bottom: 10px;
+            }
+            
+            .card-body {
+                padding: 10px;
+            }
+            
+            .card-title {
+                font-size: 0.9rem;
+            }
+            
+            .card-text {
+                font-size: 0.8rem;
+            }
+            
+            .card-img-top {
+                height: 150px !important;
+            }
+            
+            /* Botones más compactos */
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            
+            .btn-sm {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
+            
+            /* Títulos más pequeños */
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            h3 {
+                font-size: 1.1rem;
+            }
+            
+            /* Chatbot aún más pequeño */
+            .chatbot-window {
+                width: 100% !important;
+                height: 80vh !important;
+                right: 0 !important;
+                bottom: 60px !important;
+                border-radius: 0 !important;
+            }
+            
+            /* Ocultar botón volver arriba en móviles pequeños */
+            .btn-volver-arriba {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        /* Landscape en móviles */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .carousel-inner {
+                height: 180px !important;
+            }
+            
+            .carousel-item img {
+                height: 180px !important;
+            }
+            
+            .chatbot-window {
+                height: 90vh !important;
+            }
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -471,7 +794,7 @@
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                 <li><a class="dropdown-item" href="{% url 'ventas:perfil' %}"><i class="bi bi-person"></i> Mi Perfil</a></li>
                                 <li><a class="dropdown-item" href="#"><i class="bi bi-box-seam"></i> Mis Pedidos</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-heart"></i> Favoritos</a></li>
+                                <li><a class="dropdown-item" href="{% url 'ventas:favoritos' %}"><i class="bi bi-heart-fill text-danger"></i> Favoritos</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'ventas:logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
                             </ul>
@@ -500,43 +823,51 @@
         <div class="offcanvas-body p-0">
             <ul class="list-group list-group-flush">
                 <li class="list-group-item">
-                    <a href="{% url 'ventas:belleza' %}" class="text-decoration-none d-block py-2">
-                        <i class="bi bi-heart-fill categoria-icon" style="color: #e91e63;"></i> Belleza
+                    <a href="{% url 'ventas:belleza' %}" class="text-decoration-none">
+                        <i class="bi bi-heart-fill categoria-icon" style="color: #e91e63;"></i>
+                        <span>Belleza</span>
                     </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="{% url 'ventas:tecnologia' %}" class="text-decoration-none d-block py-2">
-                        <i class="bi bi-laptop categoria-icon" style="color: #2196f3;"></i> Tecnología
+                    <a href="{% url 'ventas:tecnologia' %}" class="text-decoration-none">
+                        <i class="bi bi-laptop categoria-icon" style="color: #2196f3;"></i>
+                        <span>Tecnología</span>
                     </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="{% url 'ventas:electrodomesticos' %}" class="text-decoration-none d-block py-2">
-                        <i class="bi bi-plug categoria-icon" style="color: #ff9800;"></i> Electrodomésticos
+                    <a href="{% url 'ventas:electrodomesticos' %}" class="text-decoration-none">
+                        <i class="bi bi-plug categoria-icon" style="color: #ff9800;"></i>
+                        <span>Electrodomésticos</span>
                     </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="{% url 'ventas:ferreteria' %}" class="text-decoration-none d-block py-2">
-                        <i class="bi bi-tools categoria-icon" style="color: #607d8b;"></i> Ferretería y Construcción
+                    <a href="{% url 'ventas:ferreteria' %}" class="text-decoration-none">
+                        <i class="bi bi-tools categoria-icon" style="color: #607d8b;"></i>
+                        <span>Ferretería y Construcción</span>
                     </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="{% url 'ventas:bebe' %}" class="text-decoration-none d-block py-2">
-                        <i class="bi bi-balloon-heart categoria-icon" style="color: #f06292;"></i> Bebé y Niños
+                    <a href="{% url 'ventas:bebe' %}" class="text-decoration-none">
+                        <i class="bi bi-balloon-heart categoria-icon" style="color: #f06292;"></i>
+                        <span>Bebé y Niños</span>
                     </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="{% url 'ventas:aire_libre' %}" class="text-decoration-none d-block py-2">
-                        <i class="bi bi-tree categoria-icon" style="color: #4caf50;"></i> Aire Libre
+                    <a href="{% url 'ventas:aire_libre' %}" class="text-decoration-none">
+                        <i class="bi bi-tree categoria-icon" style="color: #4caf50;"></i>
+                        <span>Aire Libre</span>
                     </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="{% url 'ventas:entretenimiento' %}" class="text-decoration-none d-block py-2">
-                        <i class="bi bi-controller categoria-icon" style="color: #9c27b0;"></i> Entretenimiento
+                    <a href="{% url 'ventas:entretenimiento' %}" class="text-decoration-none">
+                        <i class="bi bi-controller categoria-icon" style="color: #9c27b0;"></i>
+                        <span>Entretenimiento</span>
                     </a>
                 </li>
                 <li class="list-group-item">
-                    <a href="{% url 'ventas:salud' %}" class="text-decoration-none d-block py-2">
-                        <i class="bi bi-heart-pulse categoria-icon" style="color: #f44336;"></i> Salud y Bienestar
+                    <a href="{% url 'ventas:salud' %}" class="text-decoration-none">
+                        <i class="bi bi-heart-pulse categoria-icon" style="color: #f44336;"></i>
+                        <span>Salud y Bienestar</span>
                     </a>
                 </li>
             </ul>
@@ -745,17 +1076,30 @@
             actualizarContadorCarrito();
         }
         
-        function agregarAlCarrito(nombre, precio, imagen, descuento = 0) {
+        function agregarAlCarrito(nombre, precio, imagen, descuento, cantidad) {
+            console.log('=== agregarAlCarrito llamada ===');
+            console.log('nombre:', nombre);
+            console.log('precio:', precio);
+            console.log('imagen:', imagen);
+            console.log('descuento:', descuento);
+            console.log('cantidad:', cantidad);
+            
+            // Valores por defecto
+            if (descuento === undefined || descuento === null) descuento = 0;
+            if (cantidad === undefined || cantidad === null) cantidad = 1;
+            
             const carrito = obtenerCarrito();
             
             // Calcular precio final
             const precioFinal = descuento > 0 ? precio * (1 - descuento / 100) : precio;
             
             // Buscar si el producto ya existe
-            const productoExistente = carrito.find(item => item.nombre === nombre);
+            const productoExistente = carrito.find(function(item) {
+                return item.nombre === nombre;
+            });
             
             if (productoExistente) {
-                productoExistente.cantidad += 1;
+                productoExistente.cantidad += cantidad;
             } else {
                 carrito.push({
                     nombre: nombre,
@@ -763,77 +1107,91 @@
                     precioFinal: precioFinal.toFixed(2),
                     imagen: imagen,
                     descuento: descuento,
-                    cantidad: 1
+                    cantidad: cantidad
                 });
             }
             
             guardarCarrito(carrito);
             
-            // Mostrar notificación
-            mostrarNotificacion('✓ Producto agregado al carrito');
+            console.log('Carrito actualizado, llamando a mostrarNotificacion...');
+            
+            // Mostrar notificación con cantidad
+            if (cantidad > 1) {
+                mostrarNotificacion('✓ ' + cantidad + ' productos agregados al carrito');
+            } else {
+                mostrarNotificacion('✓ Producto agregado al carrito');
+            }
         }
         
         function actualizarContadorCarrito() {
             const carrito = obtenerCarrito();
-            const totalProductos = carrito.reduce((total, item) => total + item.cantidad, 0);
+            const totalProductos = carrito.reduce(function(total, item) {
+                return total + item.cantidad;
+            }, 0);
             const badge = document.querySelector('.badge-carrito');
             if (badge) {
                 badge.textContent = totalProductos;
             }
         }
         
-        function mostrarNotificacion(mensaje) {
+        function mostrarNotificacion(mensaje, tipo) {
+            // Si tipo no está definido, usar 'success' por defecto
+            if (!tipo) tipo = 'success';
+            
+            console.log('=== INICIO mostrarNotificacion ===');
+            console.log('Mensaje:', mensaje);
+            console.log('Tipo:', tipo);
+            
+            // Definir colores según el tipo
+            let backgroundColor;
+            if (tipo === 'error') {
+                backgroundColor = '#dc3545';
+            } else if (tipo === 'info') {
+                backgroundColor = '#0dcaf0';
+            } else if (tipo === 'warning') {
+                backgroundColor = '#ffc107';
+            } else {
+                backgroundColor = '#198754';
+            }
+            
+            console.log('Color:', backgroundColor);
+            
             // Crear notificación toast
             const toast = document.createElement('div');
-            toast.className = 'toast-notification';
             toast.textContent = mensaje;
-            toast.style.cssText = `
-                position: fixed;
-                top: 100px;
-                right: 20px;
-                background: linear-gradient(135deg, var(--color-verde-oscuro), var(--color-verde-principal));
-                color: white;
-                padding: 15px 25px;
-                border-radius: 10px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                z-index: 9999;
-                animation: slideIn 0.3s ease;
-            `;
+            toast.style.position = 'fixed';
+            toast.style.top = '100px';
+            toast.style.right = '20px';
+            toast.style.backgroundColor = backgroundColor;
+            toast.style.color = 'white';
+            toast.style.padding = '15px 25px';
+            toast.style.borderRadius = '10px';
+            toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+            toast.style.zIndex = '99999';
+            toast.style.fontWeight = '500';
+            toast.style.minWidth = '250px';
+            toast.style.transition = 'all 0.3s ease';
+            
+            console.log('Toast creado:', toast);
             
             document.body.appendChild(toast);
+            console.log('Toast añadido al body');
+            console.log('Toast en DOM:', document.body.contains(toast));
             
-            setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
+            // Eliminar después de 3 segundos
+            setTimeout(function() {
+                console.log('Eliminando toast...');
+                toast.style.opacity = '0';
+                setTimeout(function() {
+                    if (toast.parentNode) {
+                        toast.remove();
+                        console.log('Toast eliminado');
+                    }
+                }, 300);
             }, 3000);
-        }
-        
-        // Agregar estilos para las animaciones
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
             
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
+            console.log('=== FIN mostrarNotificacion ===');
+        }
         
         // Función para volver arriba
         function volverArriba() {

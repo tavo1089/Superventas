@@ -33,20 +33,23 @@
 <!-- Filtros y búsqueda -->
 <div class="row mb-4">
     <div class="col-md-8">
-        <div class="input-group">
-            <input type="text" class="form-control" placeholder="Buscar productos en {{ categoria }}...">
-            <button class="btn btn-success" type="button">
-                <i class="bi bi-search"></i> Buscar
-            </button>
-        </div>
+        <form action="" method="get" id="formBuscarCategoria">
+            <div class="input-group">
+                <input type="text" class="form-control" name="buscar" placeholder="Buscar productos en {{ categoria }}..." value="{{ buscar }}">
+                <input type="hidden" name="orden" value="{{ orden }}">
+                <button class="btn btn-success" type="submit">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
     </div>
     <div class="col-md-4">
-        <select class="form-select">
-            <option selected>Ordenar por...</option>
-            <option value="1">Menor precio</option>
-            <option value="2">Mayor precio</option>
-            <option value="3">Mayor descuento</option>
-            <option value="4">Más populares</option>
+        <select class="form-select" id="ordenarPor" onchange="ordenarProductos()">
+            <option value="">Ordenar por...</option>
+            <option value="precio_asc" {% if orden == 'precio_asc' %}selected{% endif %}>Menor precio</option>
+            <option value="precio_desc" {% if orden == 'precio_desc' %}selected{% endif %}>Mayor precio</option>
+            <option value="descuento" {% if orden == 'descuento' %}selected{% endif %}>Mayor descuento</option>
+            <option value="nombre" {% if orden == 'nombre' %}selected{% endif %}>Nombre A-Z</option>
         </select>
     </div>
 </div>
@@ -98,7 +101,11 @@
                         <span class="h4 text-success mb-0">${{ producto.precio }}</span>
                     </div>
                     {% endif %}
-                    <button class="btn btn-success w-100" onclick="agregarAlCarrito('{{ producto.nombre }}', {{ producto.precio }}, '{{ producto.imagen }}', {{ producto.descuento }})">
+                    <button class="btn btn-success w-100 btn-agregar-carrito" 
+                            data-nombre="{{ producto.nombre }}" 
+                            data-precio="{{ producto.precio }}" 
+                            data-imagen="{{ producto.imagen }}" 
+                            data-descuento="{{ producto.descuento }}">
                         <i class="bi bi-cart-plus"></i> Agregar al Carrito
                     </button>
                 </div>
@@ -203,4 +210,46 @@
     color: var(--color-verde-oscuro);
 }
 </style>
+
+<script>
+function ordenarProductos() {
+    const ordenSelect = document.getElementById('ordenarPor');
+    const ordenValue = ordenSelect.value;
+    
+    // Obtener la URL actual
+    const url = new URL(window.location.href);
+    
+    // Mantener el término de búsqueda si existe
+    const buscarInput = document.querySelector('input[name="buscar"]');
+    if (buscarInput && buscarInput.value) {
+        url.searchParams.set('buscar', buscarInput.value);
+    }
+    
+    // Agregar u omitir el parámetro orden
+    if (ordenValue) {
+        url.searchParams.set('orden', ordenValue);
+    } else {
+        url.searchParams.delete('orden');
+    }
+    
+    window.location.href = url.toString();
+}
+
+// Event listener para botones de agregar al carrito
+document.addEventListener('DOMContentLoaded', function() {
+    const botonesAgregar = document.querySelectorAll('.btn-agregar-carrito');
+    
+    botonesAgregar.forEach(function(boton) {
+        boton.addEventListener('click', function() {
+            const nombre = this.getAttribute('data-nombre');
+            const precio = parseFloat(this.getAttribute('data-precio'));
+            const imagen = this.getAttribute('data-imagen');
+            const descuento = parseInt(this.getAttribute('data-descuento')) || 0;
+            
+            console.log('Agregando producto:', nombre, precio, imagen, descuento);
+            agregarAlCarrito(nombre, precio, imagen, descuento, 1);
+        });
+    });
+});
+</script>
 {% endblock %}

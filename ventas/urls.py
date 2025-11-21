@@ -23,6 +23,10 @@ urlpatterns = [
     path('aire-libre/', views.categoria_aire_libre, name='aire_libre'),
     path('entretenimiento/', views.categoria_entretenimiento, name='entretenimiento'),
     path('salud/', views.categoria_salud, name='salud'),
+    # Favoritos
+    path('favoritos/', views.lista_favoritos, name='favoritos'),
+    path('agregar-favorito/', views.agregar_favorito, name='agregar_favorito'),
+    path('quitar-favorito/', views.quitar_favorito, name='quitar_favorito'),
     # WhatsApp Webhook
     path('webhook/whatsapp/', whatsapp_webhook, name='whatsapp_webhook'),
 ]

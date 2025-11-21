@@ -36,6 +36,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# CSRF Configuration
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_SECURE = False  # True solo en producción con HTTPS
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
+
 
 # Application definition
 

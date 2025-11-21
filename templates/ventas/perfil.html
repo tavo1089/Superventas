@@ -39,8 +39,11 @@
                     <a href="#" class="list-group-item list-group-item-action">
                         <i class="bi bi-bag-check me-2"></i>Mis Pedidos
                     </a>
-                    <a href="#" class="list-group-item list-group-item-action">
-                        <i class="bi bi-heart me-2"></i>Favoritos
+                    <a href="{% url 'ventas:favoritos' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-heart-fill text-danger me-2"></i>Favoritos
+                        {% if user.favoritos.count > 0 %}
+                        <span class="badge bg-danger rounded-pill float-end">{{ user.favoritos.count }}</span>
+                        {% endif %}
                     </a>
                 </div>
             </div>
@@ -158,13 +161,15 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card shadow-sm text-center">
-                        <div class="card-body">
-                            <i class="bi bi-heart text-danger" style="font-size: 2rem;"></i>
-                            <h3 class="mt-2 mb-0">0</h3>
-                            <p class="text-muted mb-0">Favoritos</p>
+                    <a href="{% url 'ventas:favoritos' %}" class="text-decoration-none">
+                        <div class="card shadow-sm text-center hover-card">
+                            <div class="card-body">
+                                <i class="bi bi-heart-fill text-danger" style="font-size: 2rem;"></i>
+                                <h3 class="mt-2 mb-0">{{ user.favoritos.count }}</h3>
+                                <p class="text-muted mb-0">Favoritos</p>
+                            </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
                 <div class="col-md-4">
                     <div class="card shadow-sm text-center">
@@ -179,4 +184,15 @@
         </div>
     </div>
 </div>
+
+<style>
+.hover-card {
+    transition: all 0.3s ease;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+</style>
 {% endblock %}

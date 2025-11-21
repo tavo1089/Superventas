@@ -100,7 +100,11 @@
                                 <span class="h4 text-success mb-0">${{ producto.precio }}</span>
                             </div>
                             {% endif %}
-                            <button class="btn btn-success w-100" onclick="agregarAlCarrito('{{ producto.nombre }}', {{ producto.precio }}, '{{ producto.imagen }}', {{ producto.descuento }})">
+                            <button class="btn btn-success w-100 btn-agregar-carrito" 
+                                    data-nombre="{{ producto.nombre }}" 
+                                    data-precio="{{ producto.precio }}" 
+                                    data-imagen="{{ producto.imagen }}" 
+                                    data-descuento="{{ producto.descuento }}">
                                 <i class="bi bi-cart-plus"></i> Agregar al Carrito
                             </button>
                         </div>
@@ -218,4 +222,23 @@
     opacity: 1;
 }
 </style>
+
+<script>
+// Event listener para botones de agregar al carrito
+document.addEventListener('DOMContentLoaded', function() {
+    const botonesAgregar = document.querySelectorAll('.btn-agregar-carrito');
+    
+    botonesAgregar.forEach(function(boton) {
+        boton.addEventListener('click', function() {
+            const nombre = this.getAttribute('data-nombre');
+            const precio = parseFloat(this.getAttribute('data-precio'));
+            const imagen = this.getAttribute('data-imagen');
+            const descuento = parseInt(this.getAttribute('data-descuento')) || 0;
+            
+            console.log('Agregando producto:', nombre, precio, imagen, descuento);
+            agregarAlCarrito(nombre, precio, imagen, descuento, 1);
+        });
+    });
+});
+</script>
 {% endblock %}

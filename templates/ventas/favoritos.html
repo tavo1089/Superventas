@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Favoritos - Superventas{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-heart-fill text-danger"></i> Mis Favoritos</h2>
+            <p class="text-muted">Tienes {{ total_favoritos }} producto{% if total_favoritos != 1 %}s{% endif %} guardado{% if total_favoritos != 1 %}s{% endif %}</p>
+        </div>
+    </div>
+
+    {% if favoritos %}
+    <div class="row g-4">
+        {% for favorito in favoritos %}
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3" id="favorito-{{ favorito.producto_id }}-{{ favorito.producto_categoria }}">
+            <div class="card h-100 shadow-sm">
+                <a href="{% url 'ventas:detalle_producto' categoria=favorito.producto_categoria producto_id=favorito.producto_id %}">
+                    <img src="{{ favorito.producto_imagen }}" class="card-img-top" alt="{{ favorito.producto_nombre }}" style="height: 200px; object-fit: cover;">
+                </a>
+                
+                {% if favorito.producto_descuento > 0 %}
+                <div class="position-absolute top-0 end-0 m-2">
+                    <span class="badge bg-danger">-{{ favorito.producto_descuento }}%</span>
+                </div>
+                {% endif %}
+
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title">{{ favorito.producto_nombre }}</h6>
+                    <p class="text-muted small mb-1">
+                        <i class="bi bi-tag"></i> {{ favorito.producto_categoria|title }}
+                    </p>
+                    
+                    <div class="mt-auto">
+                        {% if favorito.producto_descuento > 0 %}
+                        <p class="mb-1">
+                            <span class="text-decoration-line-through text-muted">${{ favorito.producto_precio }}</span>
+                            <span class="text-success fw-bold fs-5">${{ favorito.precio_final }}</span>
+                        </p>
+                        <p class="text-success small mb-2">
+                            <i class="bi bi-piggy-bank"></i> Ahorras ${{ favorito.ahorro }}
+                        </p>
+                        {% else %}
+                        <p class="fw-bold fs-5 mb-2">${{ favorito.producto_precio }}</p>
+                        {% endif %}
+
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'ventas:detalle_producto' categoria=favorito.producto_categoria producto_id=favorito.producto_id %}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-eye"></i> Ver Producto
+                            </a>
+                            <button class="btn btn-outline-danger btn-sm" onclick="quitarDeFavoritos({{ favorito.producto_id }}, '{{ favorito.producto_categoria }}')">
+                                <i class="bi bi-heart-fill"></i> Quitar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer text-muted small">
+                    <i class="bi bi-clock"></i> Agregado el {{ favorito.fecha_agregado|date:"d/m/Y" }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-heart" style="font-size: 5rem; color: #ddd;"></i>
+            <h3 class="mt-3 text-muted">No tienes favoritos guardados</h3>
+            <p class="text-muted">Empieza a explorar nuestros productos y guarda tus favoritos</p>
+            <a href="{% url 'ventas:index' %}" class="btn btn-primary">
+                <i class="bi bi-shop"></i> Ver Catálogo
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function quitarDeFavoritos(productoId, categoria) {
+    if (!confirm('¿Estás seguro de que deseas quitar este producto de favoritos?')) {
+        return;
+    }
+
+    fetch("{% url 'ventas:quitar_favorito' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: `producto_id=${productoId}&producto_categoria=${categoria}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Eliminar la tarjeta del DOM
+            const tarjeta = document.getElementById(`favorito-${productoId}-${categoria}`);
+            if (tarjeta) {
+                tarjeta.remove();
+            }
+
+            // Actualizar el contador
+            const contador = document.querySelector('.text-muted');
+            const numActual = {{ total_favoritos }};
+            const numNuevo = numActual - 1;
+            
+            if (numNuevo === 0) {
+                // Recargar la página para mostrar el mensaje de "sin favoritos"
+                location.reload();
+            } else {
+                contador.textContent = `Tienes ${numNuevo} producto${numNuevo !== 1 ? 's' : ''} guardado${numNuevo !== 1 ? 's' : ''}`;
+            }
+
+            mostrarNotificacion('Producto eliminado de favoritos', 'success');
+        } else {
+            mostrarNotificacion(data.message || 'Error al eliminar de favoritos', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mostrarNotificacion('Error al conectar con el servidor', 'error');
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

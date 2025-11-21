@@ -3,10 +3,33 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .models import Favorito
 from .forms import UserUpdateForm, PerfilUpdateForm, CambiarPasswordForm
 import re
 
 # Create your views here.
+
+def ordenar_productos(productos, orden):
+    """Función helper para ordenar productos"""
+    if orden == 'precio_asc':
+        return sorted(productos, key=lambda x: x['precio'])
+    elif orden == 'precio_desc':
+        return sorted(productos, key=lambda x: x['precio'], reverse=True)
+    elif orden == 'descuento':
+        return sorted(productos, key=lambda x: x['descuento'], reverse=True)
+    elif orden == 'nombre':
+        return sorted(productos, key=lambda x: x['nombre'])
+    return productos
+
+def filtrar_productos(productos, buscar):
+    """Función helper para filtrar productos por término de búsqueda"""
+    if not buscar:
+        return productos
+    
+    buscar = buscar.lower()
+    return [p for p in productos if buscar in p['nombre'].lower()]
 
 def index(request):
     """Vista principal de la aplicación"""
@@ -47,7 +70,7 @@ def buscar(request):
     todos_productos.extend([
         {'nombre': 'Refrigeradora Smart 500L', 'precio': 1499.99, 'descuento': 10, 'imagen': 'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=300&fit=crop', 'categoria': 'Electrodomésticos'},
         {'nombre': 'Lavadora Automática 18kg', 'precio': 899.99, 'descuento': 15, 'imagen': 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=400&h=300&fit=crop', 'categoria': 'Electrodomésticos'},
-        {'nombre': 'Aspiradora Robot Smart', 'precio': 399.99, 'descuento': 25, 'imagen': 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=300&fit=crop', 'categoria': 'Electrodomésticos'},
+        {'nombre': 'Auriculares Bluetooth Premium', 'precio': 399.99, 'descuento': 25, 'imagen': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop', 'categoria': 'Tecnología'},
     ])
     
     # Filtrar productos según la búsqueda
@@ -74,11 +97,22 @@ def categoria_belleza(request):
         {'id': 5, 'nombre': 'Plancha de Cabello Profesional', 'precio': 75.00, 'descuento': 30, 'imagen': 'https://images.unsplash.com/photo-1522338242992-e1a54906a8da?w=400&h=300&fit=crop'},
         {'id': 6, 'nombre': 'Kit de Cuidado de Uñas', 'precio': 35.99, 'descuento': 0, 'imagen': 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400&h=300&fit=crop'},
     ]
+    
+    # Obtener parámetros de búsqueda y ordenamiento
+    buscar = request.GET.get('buscar', '')
+    orden = request.GET.get('orden', '')
+    
+    # Filtrar y ordenar productos
+    productos = filtrar_productos(productos, buscar)
+    productos = ordenar_productos(productos, orden)
+    
     context = {
         'categoria': 'Belleza',
         'categoria_slug': 'belleza',
         'icono': 'bi-heart-fill',
-        'productos': productos
+        'productos': productos,
+        'orden': orden,
+        'buscar': buscar
     }
     return render(request, 'ventas/catalogo.html', context)
 
@@ -89,17 +123,28 @@ def categoria_tecnologia(request):
         {'id': 1, 'nombre': 'Smartphone Galaxy Pro', 'precio': 899.99, 'descuento': 15, 'imagen': 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop'},
         {'id': 2, 'nombre': 'Laptop Gaming RGB', 'precio': 1299.99, 'descuento': 20, 'imagen': 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&h=300&fit=crop'},
         {'id': 3, 'nombre': 'Tablet Pro 12"', 'precio': 599.99, 'descuento': 10, 'imagen': 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&h=300&fit=crop'},
-        {'id': 4, 'nombre': 'Auriculares Bluetooth', 'precio': 159.99, 'descuento': 25, 'imagen': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop'},
+        {'id': 4, 'nombre': 'Auriculares Bluetooth Premium', 'precio': 399.99, 'descuento': 25, 'imagen': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop'},
         {'id': 5, 'nombre': 'Smartwatch Ultra', 'precio': 399.99, 'descuento': 30, 'imagen': 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&h=300&fit=crop'},
         {'id': 6, 'nombre': 'Teclado Mecánico RGB', 'precio': 129.99, 'descuento': 15, 'imagen': 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&h=300&fit=crop'},
         {'id': 7, 'nombre': 'Mouse Gaming Pro', 'precio': 79.99, 'descuento': 20, 'imagen': 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400&h=300&fit=crop'},
         {'id': 8, 'nombre': 'Cámara Web 4K', 'precio': 149.99, 'descuento': 0, 'imagen': 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=400&h=300&fit=crop'},
     ]
+    
+    # Obtener parámetros de búsqueda y ordenamiento
+    buscar = request.GET.get('buscar', '')
+    orden = request.GET.get('orden', '')
+    
+    # Filtrar y ordenar productos
+    productos = filtrar_productos(productos, buscar)
+    productos = ordenar_productos(productos, orden)
+    
     context = {
         'categoria': 'Tecnología',
         'categoria_slug': 'tecnologia',
         'icono': 'bi-laptop',
-        'productos': productos
+        'productos': productos,
+        'orden': orden,
+        'buscar': buscar
     }
     return render(request, 'ventas/catalogo.html', context)
 
@@ -110,15 +155,20 @@ def categoria_electrodomesticos(request):
         {'id': 1, 'nombre': 'Refrigeradora Smart 500L', 'precio': 1499.99, 'descuento': 10, 'imagen': 'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=300&fit=crop'},
         {'id': 2, 'nombre': 'Lavadora Automática 18kg', 'precio': 899.99, 'descuento': 15, 'imagen': 'https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?w=400&h=300&fit=crop'},
         {'id': 3, 'nombre': 'Microondas Digital', 'precio': 199.99, 'descuento': 20, 'imagen': 'https://images.unsplash.com/photo-1585659722983-3a675dabf23d?w=400&h=300&fit=crop'},
-        {'id': 4, 'nombre': 'Aspiradora Robot Smart', 'precio': 399.99, 'descuento': 25, 'imagen': 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=300&fit=crop'},
-        {'id': 5, 'nombre': 'Licuadora Pro 1200W', 'precio': 129.99, 'descuento': 30, 'imagen': 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=400&h=300&fit=crop'},
-        {'id': 6, 'nombre': 'Cafetera Express', 'precio': 179.99, 'descuento': 15, 'imagen': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop'},
+        {'id': 4, 'nombre': 'Licuadora Pro 1200W', 'precio': 129.99, 'descuento': 30, 'imagen': 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=400&h=300&fit=crop'},
+        {'id': 5, 'nombre': 'Cafetera Express', 'precio': 179.99, 'descuento': 15, 'imagen': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop'},
     ]
+    buscar = request.GET.get('buscar', '')
+    orden = request.GET.get('orden', '')
+    productos = filtrar_productos(productos, buscar)
+    productos = ordenar_productos(productos, orden)
     context = {
         'categoria': 'Electrodomésticos',
         'categoria_slug': 'electrodomesticos',
         'icono': 'bi-plug',
-        'productos': productos
+        'productos': productos,
+        'orden': orden,
+        'buscar': buscar
     }
     return render(request, 'ventas/catalogo.html', context)
 
@@ -133,11 +183,17 @@ def categoria_ferreteria(request):
         {'id': 5, 'nombre': 'Compresor de Aire', 'precio': 249.99, 'descuento': 30, 'imagen': 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400&h=300&fit=crop'},
         {'id': 6, 'nombre': 'Nivel Láser Digital', 'precio': 129.99, 'descuento': 0, 'imagen': 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=400&h=300&fit=crop'},
     ]
+    buscar = request.GET.get('buscar', '')
+    orden = request.GET.get('orden', '')
+    productos = filtrar_productos(productos, buscar)
+    productos = ordenar_productos(productos, orden)
     context = {
         'categoria': 'Ferretería y Construcción',
         'categoria_slug': 'ferreteria',
         'icono': 'bi-tools',
-        'productos': productos
+        'productos': productos,
+        'orden': orden,
+        'buscar': buscar
     }
     return render(request, 'ventas/catalogo.html', context)
 
@@ -152,11 +208,17 @@ def categoria_bebe(request):
         {'id': 5, 'nombre': 'Juguete Educativo Musical', 'precio': 59.99, 'descuento': 30, 'imagen': 'https://images.unsplash.com/photo-1587818541473-f2e71229046f?w=400&h=300&fit=crop'},
         {'id': 6, 'nombre': 'Pañalera de Viaje', 'precio': 79.99, 'descuento': 0, 'imagen': 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400&h=300&fit=crop'},
     ]
+    buscar = request.GET.get('buscar', '')
+    orden = request.GET.get('orden', '')
+    productos = filtrar_productos(productos, buscar)
+    productos = ordenar_productos(productos, orden)
     context = {
         'categoria': 'Bebé y Niños',
         'categoria_slug': 'bebe',
         'icono': 'bi-balloon-heart',
-        'productos': productos
+        'productos': productos,
+        'orden': orden,
+        'buscar': buscar
     }
     return render(request, 'ventas/catalogo.html', context)
 
@@ -171,11 +233,17 @@ def categoria_aire_libre(request):
         {'id': 5, 'nombre': 'Mochila Trekking 50L', 'precio': 99.99, 'descuento': 30, 'imagen': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=300&fit=crop'},
         {'id': 6, 'nombre': 'Kayak Inflable 2 Personas', 'precio': 399.99, 'descuento': 0, 'imagen': 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop'},
     ]
+    buscar = request.GET.get('buscar', '')
+    orden = request.GET.get('orden', '')
+    productos = filtrar_productos(productos, buscar)
+    productos = ordenar_productos(productos, orden)
     context = {
         'categoria': 'Aire Libre',
         'categoria_slug': 'aire_libre',
         'icono': 'bi-tree',
-        'productos': productos
+        'productos': productos,
+        'orden': orden,
+        'buscar': buscar
     }
     return render(request, 'ventas/catalogo.html', context)
 
@@ -190,11 +258,17 @@ def categoria_entretenimiento(request):
         {'id': 5, 'nombre': 'Guitarra Eléctrica', 'precio': 379.99, 'descuento': 30, 'imagen': 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&h=300&fit=crop'},
         {'id': 6, 'nombre': 'Set de Juegos de Mesa', 'precio': 89.99, 'descuento': 0, 'imagen': 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=400&h=300&fit=crop'},
     ]
+    buscar = request.GET.get('buscar', '')
+    orden = request.GET.get('orden', '')
+    productos = filtrar_productos(productos, buscar)
+    productos = ordenar_productos(productos, orden)
     context = {
         'categoria': 'Entretenimiento',
         'categoria_slug': 'entretenimiento',
         'icono': 'bi-controller',
-        'productos': productos
+        'productos': productos,
+        'orden': orden,
+        'buscar': buscar
     }
     return render(request, 'ventas/catalogo.html', context)
 
@@ -209,11 +283,17 @@ def categoria_salud(request):
         {'id': 5, 'nombre': 'Masajeador Eléctrico', 'precio': 129.99, 'descuento': 10, 'imagen': 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop'},
         {'id': 6, 'nombre': 'Monitor de Presión Digital', 'precio': 69.99, 'descuento': 0, 'imagen': 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=300&fit=crop'},
     ]
+    buscar = request.GET.get('buscar', '')
+    orden = request.GET.get('orden', '')
+    productos = filtrar_productos(productos, buscar)
+    productos = ordenar_productos(productos, orden)
     context = {
         'categoria': 'Salud y Bienestar',
         'categoria_slug': 'salud',
         'icono': 'bi-heart-pulse',
-        'productos': productos
+        'productos': productos,
+        'orden': orden,
+        'buscar': buscar
     }
     return render(request, 'ventas/catalogo.html', context)
 
@@ -974,15 +1054,15 @@ def detalle_producto(request, categoria, producto_id):
                 'resenas': [{'usuario': 'Pedro L.', 'estrellas': 4, 'estrellas_range': range(4), 'fecha': '16 Nov 2025', 'comentario': 'Buen microondas, el grill funciona muy bien.'}]
             },
             {
-                'id': 4, 'nombre': 'Aspiradora Robot Smart', 'precio': 399.99, 'descuento': 25,
-                'imagen': 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=300&fit=crop',
-                'categoria': 'Electrodomésticos', 'icono': 'bi-plug', 'sku': 'ELEC-004',
-                'descripcion': 'Aspiradora robot inteligente con mapeo láser, app control y función mopa.',
-                'descripcion_larga': 'Aspiradora robot de navegación inteligente con sensor láser LiDAR que mapea tu hogar con precisión. Succión potente de 3000Pa ideal para alfombras y pisos duros. Función 2 en 1: aspirado y mopa simultáneos. Control total desde app móvil con programación, zonas prohibidas y limpieza por habitaciones. Retorna automáticamente a base de carga. Batería de 5200mAh para hasta 200m² de limpieza.',
-                'caracteristicas': ['Mapeo láser LiDAR', 'Succión 3000Pa', 'Aspira y trapea 2en1', 'Control por app WiFi', 'Batería 5200mAh', 'Auto-recarga', 'Sensores anti-caída'],
-                'beneficios': ['Limpieza autónoma', 'Navegación inteligente', 'Ideal mascotas', 'Programable'],
-                'especificaciones': {'Succión': '3000Pa', 'Batería': '5200mAh (200m²)', 'Navegación': 'LiDAR', 'Tanque polvo': '600ml', 'Tanque agua': '300ml', 'Ruido': '65dB', 'WiFi': 'Sí + app', 'Garantía': '2 años'},
-                'resenas': [{'usuario': 'Ana B.', 'estrellas': 5, 'estrellas_range': range(5), 'fecha': '19 Nov 2025', 'comentario': 'Increíble! Deja la casa impecable sin esfuerzo.'}]
+                'id': 4, 'nombre': 'Auriculares Bluetooth Premium', 'precio': 399.99, 'descuento': 25,
+                'imagen': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop',
+                'categoria': 'Tecnología', 'icono': 'bi-headphones', 'sku': 'TECH-004',
+                'descripcion': 'Auriculares inalámbricos con cancelación de ruido activa y sonido Hi-Fi.',
+                'descripcion_larga': 'Auriculares Bluetooth premium con cancelación de ruido activa (ANC) y modo de transparencia. Drivers de 40mm con sonido Hi-Fi de alta resolución. Batería de larga duración: hasta 30 horas con ANC desactivado y 20 horas con ANC activado. Carga rápida: 5 minutos para 2 horas de uso. Almohadillas de espuma viscoelástica para máximo confort. Controles táctiles intuitivos y asistente de voz integrado. Plegables con estuche rígido de transporte incluido.',
+                'caracteristicas': ['Cancelación ruido ANC', 'Bluetooth 5.3', 'Drivers 40mm Hi-Fi', 'Batería 30h', 'Carga rápida USB-C', 'Controles táctiles', 'Micrófono con reducción de ruido'],
+                'beneficios': ['Sonido premium', 'Comodidad extrema', 'Batería duradera', 'Aísla del ruido'],
+                'especificaciones': {'Conectividad': 'Bluetooth 5.3', 'Batería': '30h (sin ANC), 20h (con ANC)', 'Drivers': '40mm Hi-Fi', 'ANC': 'Sí, activo', 'Micrófono': 'Dual con reducción ruido', 'Carga': 'USB-C rápida', 'Peso': '250g', 'Garantía': '1 año'},
+                'resenas': [{'usuario': 'Carlos M.', 'estrellas': 5, 'estrellas_range': range(5), 'fecha': '19 Nov 2025', 'comentario': 'Increíble calidad de sonido! La cancelación de ruido es perfecta.'}]
             },
             {
                 'id': 5, 'nombre': 'Licuadora Pro 1200W', 'precio': 129.99, 'descuento': 30,
@@ -1093,3 +1173,84 @@ def detalle_producto(request, categoria, producto_id):
     }
     
     return render(request, 'ventas/detalle_producto.html', context)
+
+
+@login_required
+@require_POST
+def agregar_favorito(request):
+    """Vista para agregar un producto a favoritos (AJAX)"""
+    try:
+        producto_id = int(request.POST.get('producto_id'))
+        producto_nombre = request.POST.get('producto_nombre')
+        producto_precio = float(request.POST.get('producto_precio'))
+        producto_descuento = int(request.POST.get('producto_descuento', 0))
+        producto_imagen = request.POST.get('producto_imagen')
+        producto_categoria = request.POST.get('producto_categoria')
+        
+        # Crear o verificar si ya existe
+        favorito, created = Favorito.objects.get_or_create(
+            user=request.user,
+            producto_id=producto_id,
+            producto_categoria=producto_categoria,
+            defaults={
+                'producto_nombre': producto_nombre,
+                'producto_precio': producto_precio,
+                'producto_descuento': producto_descuento,
+                'producto_imagen': producto_imagen
+            }
+        )
+        
+        if created:
+            return JsonResponse({'status': 'success', 'message': '¡Producto agregado a favoritos!', 'action': 'added'})
+        else:
+            return JsonResponse({'status': 'info', 'message': 'Este producto ya está en tus favoritos', 'action': 'exists'})
+    
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+@require_POST
+def quitar_favorito(request):
+    """Vista para quitar un producto de favoritos (AJAX)"""
+    try:
+        producto_id = int(request.POST.get('producto_id'))
+        producto_categoria = request.POST.get('producto_categoria')
+        
+        favorito = Favorito.objects.filter(
+            user=request.user,
+            producto_id=producto_id,
+            producto_categoria=producto_categoria
+        ).first()
+        
+        if favorito:
+            favorito.delete()
+            return JsonResponse({'status': 'success', 'message': 'Producto eliminado de favoritos', 'action': 'removed'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Producto no encontrado en favoritos'}, status=404)
+    
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+def lista_favoritos(request):
+    """Vista para mostrar la lista de favoritos del usuario"""
+    favoritos = Favorito.objects.filter(user=request.user)
+    
+    # Calcular precio final para cada favorito
+    for fav in favoritos:
+        if fav.producto_descuento > 0:
+            precio_final = float(fav.producto_precio) * (1 - fav.producto_descuento / 100)
+            fav.precio_final = round(precio_final, 2)
+            fav.ahorro = round(float(fav.producto_precio) - precio_final, 2)
+        else:
+            fav.precio_final = float(fav.producto_precio)
+            fav.ahorro = 0
+    
+    context = {
+        'favoritos': favoritos,
+        'total_favoritos': favoritos.count()
+    }
+    
+    return render(request, 'ventas/favoritos.html', context)
