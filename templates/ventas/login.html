@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión - Superventas{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb para navegación -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'ventas:index' %}" class="text-success text-decoration-none">
+                <i class="bi bi-house-door-fill"></i> Inicio
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Iniciar Sesión</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-header text-center py-4" style="background: linear-gradient(135deg, var(--color-verde-principal) 0%, var(--color-verde-claro) 100%);">
+                <h3 class="text-white mb-0">
+                    <i class="bi bi-person-circle"></i> Iniciar Sesión
+                </h3>
+            </div>
+            <div class="card-body p-5">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post" action="{% url 'ventas:login' %}" id="formLogin">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="username" class="form-label">
+                            <i class="bi bi-person"></i> Usuario <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="username" name="username" required autofocus>
+                        <div class="invalid-feedback">
+                            Por favor ingresa tu usuario
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label">
+                            <i class="bi bi-lock"></i> Contraseña <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" required>
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback">
+                            Por favor ingresa tu contraseña
+                        </div>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label" for="remember">
+                            Recordarme
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100 mb-3">
+                        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                    </button>
+
+                    <div class="text-center">
+                        <a href="#" class="text-muted text-decoration-none">¿Olvidaste tu contraseña?</a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center bg-light py-3">
+                <p class="mb-0 text-muted">
+                    ¿No tienes cuenta? 
+                    <a href="{% url 'ventas:registro' %}" class="text-success fw-bold text-decoration-none">
+                        Regístrate aquí
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Beneficios de registrarse -->
+        <div class="mt-4 text-center">
+            <div class="row g-3">
+                <div class="col-4">
+                    <div class="p-3 bg-light rounded">
+                        <i class="bi bi-truck fs-3 text-success"></i>
+                        <p class="small mb-0 mt-2">Envío gratis</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 bg-light rounded">
+                        <i class="bi bi-bookmark-heart fs-3 text-success"></i>
+                        <p class="small mb-0 mt-2">Favoritos</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="p-3 bg-light rounded">
+                        <i class="bi bi-clock-history fs-3 text-success"></i>
+                        <p class="small mb-0 mt-2">Historial</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    font-weight: 500;
+}
+
+.breadcrumb-item.active {
+    color: var(--color-gris-oscuro);
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.form-control:focus {
+    border-color: var(--color-verde-principal);
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: var(--color-verde-principal);
+    border-color: var(--color-verde-principal);
+}
+
+.input-group .btn-outline-secondary {
+    border-color: #ced4da;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background-color: var(--color-verde-principal);
+    border-color: var(--color-verde-principal);
+    color: white;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formLogin');
+    const password = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    
+    // Mostrar/ocultar contraseña
+    togglePassword.addEventListener('click', function() {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+    });
+    
+    // Validación del formulario
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        const username = document.getElementById('username');
+        
+        if (username.value.trim() === '') {
+            username.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            username.classList.remove('is-invalid');
+        }
+        
+        if (password.value === '') {
+            password.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            password.classList.remove('is-invalid');
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+        }
+    });
+    
+    // Validación en tiempo real
+    const inputs = form.querySelectorAll('input[required]');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+        
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid') && this.value.trim() !== '') {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

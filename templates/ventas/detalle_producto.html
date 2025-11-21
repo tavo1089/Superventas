@@ -1,0 +1,582 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ producto.nombre }} - Superventas{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb para navegación -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'ventas:index' %}" class="text-success text-decoration-none">
+                <i class="bi bi-house-door-fill"></i> Inicio
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{{ categoria_url }}" class="text-success text-decoration-none">
+                {{ producto.categoria }}
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ producto.nombre }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <!-- Galería de imágenes del producto -->
+    <div class="col-lg-6 mb-4">
+        <div class="producto-galeria">
+            <!-- Imagen principal -->
+            <div class="imagen-principal mb-3">
+                <img id="imagenPrincipal" src="{{ producto.imagen }}" alt="{{ producto.nombre }}" class="img-fluid rounded shadow">
+                {% if producto.descuento > 0 %}
+                <span class="badge-descuento">
+                    -{{ producto.descuento }}%
+                </span>
+                {% endif %}
+                <span class="badge-categoria">
+                    <i class="{{ producto.icono }}"></i> {{ producto.categoria }}
+                </span>
+            </div>
+            
+            <!-- Miniaturas (simuladas) -->
+            <div class="miniaturas d-flex gap-2">
+                <img src="{{ producto.imagen }}" alt="Vista 1" class="miniatura active" onclick="cambiarImagen(this.src)">
+                <img src="{{ producto.imagen }}" alt="Vista 2" class="miniatura" onclick="cambiarImagen(this.src)">
+                <img src="{{ producto.imagen }}" alt="Vista 3" class="miniatura" onclick="cambiarImagen(this.src)">
+                <img src="{{ producto.imagen }}" alt="Vista 4" class="miniatura" onclick="cambiarImagen(this.src)">
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del producto -->
+    <div class="col-lg-6">
+        <div class="producto-info">
+            <h1 class="producto-titulo">{{ producto.nombre }}</h1>
+            
+            <!-- Rating y reseñas -->
+            <div class="rating mb-3">
+                <div class="estrellas">
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <i class="bi bi-star-half text-warning"></i>
+                    <span class="ms-2 text-muted">(4.5) - 128 reseñas</span>
+                </div>
+            </div>
+
+            <!-- SKU y disponibilidad -->
+            <div class="mb-3">
+                <span class="text-muted">SKU: </span>
+                <span class="fw-bold">{{ producto.sku }}</span>
+                <span class="ms-3">
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                    <span class="text-success fw-bold">En Stock</span>
+                </span>
+            </div>
+
+            <!-- Precio -->
+            <div class="precio-section mb-4">
+                {% if producto.descuento > 0 %}
+                <div class="precio-anterior">
+                    <span class="text-muted text-decoration-line-through">${{ producto.precio }}</span>
+                    <span class="badge bg-danger ms-2">¡Ahorra {{ producto.descuento }}%!</span>
+                </div>
+                <div class="precio-actual">
+                    ${{ producto.precio_final }}
+                </div>
+                <div class="ahorro">
+                    <small class="text-success">Ahorras: ${{ producto.ahorro }}</small>
+                </div>
+                {% else %}
+                <div class="precio-actual">
+                    ${{ producto.precio }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Descripción corta -->
+            <div class="descripcion-corta mb-4">
+                <h5>Descripción</h5>
+                <p>{{ producto.descripcion }}</p>
+            </div>
+
+            <!-- Características principales -->
+            <div class="caracteristicas-principales mb-4">
+                <h5>Características Principales</h5>
+                <ul class="lista-caracteristicas">
+                    {% for caracteristica in producto.caracteristicas %}
+                    <li><i class="bi bi-check-circle text-success"></i> {{ caracteristica }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Selector de cantidad -->
+            <div class="cantidad-section mb-4">
+                <label class="form-label fw-bold">Cantidad:</label>
+                <div class="input-group cantidad-input" style="max-width: 150px;">
+                    <button class="btn btn-outline-secondary" type="button" onclick="cambiarCantidadDetalle(-1)">
+                        <i class="bi bi-dash"></i>
+                    </button>
+                    <input type="number" class="form-control text-center" id="cantidadProducto" value="1" min="1" max="10">
+                    <button class="btn btn-outline-secondary" type="button" onclick="cambiarCantidadDetalle(1)">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="botones-accion mb-4">
+                <button class="btn btn-success btn-lg" onclick="agregarAlCarritoDetalle()">
+                    <i class="bi bi-cart-plus"></i> Agregar al Carrito
+                </button>
+                <button class="btn btn-outline-success btn-lg ms-2" onclick="agregarAFavoritos()">
+                    <i class="bi bi-heart"></i>
+                </button>
+                <button class="btn btn-outline-secondary btn-lg ms-2" onclick="compartir()">
+                    <i class="bi bi-share"></i>
+                </button>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="info-adicional">
+                <div class="info-item">
+                    <i class="bi bi-truck text-success"></i>
+                    <span><strong>Envío gratis</strong> en compras mayores a $100</span>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-arrow-clockwise text-success"></i>
+                    <span><strong>Devolución gratis</strong> dentro de 30 días</span>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-shield-check text-success"></i>
+                    <span><strong>Garantía de 1 año</strong> del fabricante</span>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-credit-card text-success"></i>
+                    <span><strong>Pago seguro</strong> con tarjeta o transferencia</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs de información detallada -->
+<div class="row mt-5">
+    <div class="col-12">
+        <ul class="nav nav-tabs" id="productoTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="descripcion-tab" data-bs-toggle="tab" data-bs-target="#descripcion" type="button">
+                    <i class="bi bi-file-text"></i> Descripción Detallada
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="especificaciones-tab" data-bs-toggle="tab" data-bs-target="#especificaciones" type="button">
+                    <i class="bi bi-list-check"></i> Especificaciones
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="resenas-tab" data-bs-toggle="tab" data-bs-target="#resenas" type="button">
+                    <i class="bi bi-star"></i> Reseñas (128)
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content p-4 border border-top-0 rounded-bottom" id="productoTabsContent">
+            <!-- Descripción detallada -->
+            <div class="tab-pane fade show active" id="descripcion" role="tabpanel">
+                <h4>Acerca de este producto</h4>
+                <p>{{ producto.descripcion_larga }}</p>
+                
+                <h5 class="mt-4">Beneficios</h5>
+                <ul>
+                    {% for beneficio in producto.beneficios %}
+                    <li>{{ beneficio }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Especificaciones técnicas -->
+            <div class="tab-pane fade" id="especificaciones" role="tabpanel">
+                <h4>Especificaciones Técnicas</h4>
+                <table class="table table-striped">
+                    <tbody>
+                        {% for spec_key, spec_value in producto.especificaciones.items %}
+                        <tr>
+                            <td class="fw-bold" style="width: 30%;">{{ spec_key }}</td>
+                            <td>{{ spec_value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Reseñas -->
+            <div class="tab-pane fade" id="resenas" role="tabpanel">
+                <h4>Reseñas de Clientes</h4>
+                <div class="resumen-resenas mb-4">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="rating-grande">4.5</div>
+                            <div class="estrellas-grande">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-half text-warning"></i>
+                            </div>
+                            <div class="text-muted">128 reseñas</div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="barras-rating">
+                                <div class="barra-item">
+                                    <span>5 ★</span>
+                                    <div class="progress flex-grow-1 mx-2">
+                                        <div class="progress-bar bg-warning" style="width: 70%"></div>
+                                    </div>
+                                    <span>70%</span>
+                                </div>
+                                <div class="barra-item">
+                                    <span>4 ★</span>
+                                    <div class="progress flex-grow-1 mx-2">
+                                        <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                    </div>
+                                    <span>20%</span>
+                                </div>
+                                <div class="barra-item">
+                                    <span>3 ★</span>
+                                    <div class="progress flex-grow-1 mx-2">
+                                        <div class="progress-bar bg-warning" style="width: 7%"></div>
+                                    </div>
+                                    <span>7%</span>
+                                </div>
+                                <div class="barra-item">
+                                    <span>2 ★</span>
+                                    <div class="progress flex-grow-1 mx-2">
+                                        <div class="progress-bar bg-warning" style="width: 2%"></div>
+                                    </div>
+                                    <span>2%</span>
+                                </div>
+                                <div class="barra-item">
+                                    <span>1 ★</span>
+                                    <div class="progress flex-grow-1 mx-2">
+                                        <div class="progress-bar bg-warning" style="width: 1%"></div>
+                                    </div>
+                                    <span>1%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de reseñas -->
+                <div class="lista-resenas">
+                    {% for resena in producto.resenas %}
+                    <div class="resena-item mb-4 pb-4 border-bottom">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ resena.usuario }}</strong>
+                                <div class="estrellas-pequenas">
+                                    {% for i in resena.estrellas_range %}
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ resena.fecha }}</small>
+                        </div>
+                        <p class="mt-2 mb-0">{{ resena.comentario }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Productos relacionados -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h3 class="mb-4"><i class="bi bi-bag-check"></i> Productos Relacionados</h3>
+        <div class="row">
+            {% for relacionado in productos_relacionados %}
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 producto-card-mini">
+                    <img src="{{ relacionado.imagen }}" class="card-img-top" alt="{{ relacionado.nombre }}" style="height: 200px; object-fit: cover;">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ relacionado.nombre }}</h6>
+                        <p class="text-success fw-bold mb-2">${{ relacionado.precio }}</p>
+                        <a href="{{ relacionado.url }}" class="btn btn-sm btn-outline-success w-100">Ver detalles</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    font-weight: 500;
+}
+
+.imagen-principal {
+    position: relative;
+}
+
+.imagen-principal img {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+}
+
+.badge-descuento {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #dc3545;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.badge-categoria {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: var(--color-verde-principal);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.miniaturas {
+    overflow-x: auto;
+}
+
+.miniatura {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.miniatura:hover,
+.miniatura.active {
+    border-color: var(--color-verde-principal);
+    transform: scale(1.05);
+}
+
+.producto-titulo {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-negro);
+    margin-bottom: 1rem;
+}
+
+.estrellas {
+    font-size: 1.2rem;
+}
+
+.precio-anterior {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.precio-actual {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-verde-principal);
+}
+
+.ahorro {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.lista-caracteristicas {
+    list-style: none;
+    padding: 0;
+}
+
+.lista-caracteristicas li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.lista-caracteristicas li:last-child {
+    border-bottom: none;
+}
+
+.lista-caracteristicas i {
+    margin-right: 10px;
+}
+
+.cantidad-input input {
+    border-left: none;
+    border-right: none;
+}
+
+.botones-accion .btn {
+    padding: 12px 30px;
+}
+
+.info-adicional {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-item i {
+    font-size: 1.5rem;
+    margin-right: 15px;
+}
+
+.nav-tabs .nav-link {
+    color: var(--color-gris-oscuro);
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--color-verde-principal);
+    border-bottom: 3px solid var(--color-verde-principal);
+}
+
+.rating-grande {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--color-verde-principal);
+}
+
+.estrellas-grande {
+    font-size: 1.5rem;
+    margin: 10px 0;
+}
+
+.barra-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.barra-item span:first-child {
+    width: 50px;
+}
+
+.barra-item span:last-child {
+    width: 50px;
+    text-align: right;
+}
+
+.resena-item {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.producto-card-mini {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.producto-card-mini:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 16px rgba(25, 135, 84, 0.2);
+}
+</style>
+
+<script>
+// Cambiar imagen principal
+function cambiarImagen(src) {
+    document.getElementById('imagenPrincipal').src = src;
+    
+    // Actualizar miniaturas activas
+    document.querySelectorAll('.miniatura').forEach(mini => mini.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+// Cambiar cantidad
+function cambiarCantidadDetalle(cambio) {
+    const input = document.getElementById('cantidadProducto');
+    let cantidad = parseInt(input.value) + cambio;
+    
+    if (cantidad < 1) cantidad = 1;
+    if (cantidad > 10) cantidad = 10;
+    
+    input.value = cantidad;
+}
+
+// Agregar al carrito desde detalle
+function agregarAlCarritoDetalle() {
+    const cantidad = parseInt(document.getElementById('cantidadProducto').value);
+    const nombre = '{{ producto.nombre }}';
+    const precio = {{ producto.precio_final|default:producto.precio }};
+    const imagen = '{{ producto.imagen }}';
+    const descuento = {{ producto.descuento|default:0 }};
+    
+    for (let i = 0; i < cantidad; i++) {
+        agregarAlCarrito(nombre, precio, imagen, descuento);
+    }
+    
+    // Mensaje personalizado
+    mostrarNotificacion(`✓ ${cantidad} producto(s) agregado(s) al carrito`);
+}
+
+// Agregar a favoritos
+function agregarAFavoritos() {
+    const btn = event.target.closest('button');
+    const icon = btn.querySelector('i');
+    
+    if (icon.classList.contains('bi-heart')) {
+        icon.classList.remove('bi-heart');
+        icon.classList.add('bi-heart-fill');
+        btn.classList.remove('btn-outline-success');
+        btn.classList.add('btn-success');
+        mostrarNotificacion('❤️ Agregado a favoritos');
+    } else {
+        icon.classList.remove('bi-heart-fill');
+        icon.classList.add('bi-heart');
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-success');
+        mostrarNotificacion('Eliminado de favoritos');
+    }
+}
+
+// Compartir producto
+function compartir() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ producto.nombre }}',
+            text: 'Mira este producto en Superventas',
+            url: window.location.href
+        });
+    } else {
+        // Copiar URL al portapapeles
+        navigator.clipboard.writeText(window.location.href);
+        mostrarNotificacion('📋 Enlace copiado al portapapeles');
+    }
+}
+</script>
+{% endblock %}

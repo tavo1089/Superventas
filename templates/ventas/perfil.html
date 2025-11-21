@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil - Superventas{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    {% if user.perfil.foto %}
+                        <img src="{{ user.perfil.foto.url }}" alt="Foto de perfil" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px; font-size: 3rem;">
+                            {{ user.username|first|upper }}
+                        </div>
+                    {% endif %}
+                    <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                    <p class="text-muted small">@{{ user.username }}</p>
+                    <a href="{% url 'ventas:editar_perfil' %}" class="btn btn-success btn-sm w-100 mb-2">
+                        <i class="bi bi-pencil-square me-1"></i>Editar Perfil
+                    </a>
+                    <a href="{% url 'ventas:cambiar_password' %}" class="btn btn-outline-success btn-sm w-100">
+                        <i class="bi bi-key me-1"></i>Cambiar Contraseña
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mt-3">
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'ventas:perfil' %}" class="list-group-item list-group-item-action active">
+                        <i class="bi bi-person me-2"></i>Mi Perfil
+                    </a>
+                    <a href="{% url 'ventas:carrito' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-cart me-2"></i>Mi Carrito
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="bi bi-bag-check me-2"></i>Mis Pedidos
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="bi bi-heart me-2"></i>Favoritos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i>Información Personal</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Nombre completo</h6>
+                            <p class="mb-0">
+                                {% if user.first_name or user.last_name %}
+                                    {{ user.first_name }} {{ user.last_name }}
+                                {% else %}
+                                    <span class="text-muted">No especificado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Nombre de usuario</h6>
+                            <p class="mb-0">{{ user.username }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Correo electrónico</h6>
+                            <p class="mb-0">{{ user.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Teléfono</h6>
+                            <p class="mb-0">
+                                {% if user.perfil.telefono %}
+                                    {{ user.perfil.telefono }}
+                                {% else %}
+                                    <span class="text-muted">No especificado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6 class="text-muted mb-1">Dirección</h6>
+                            <p class="mb-0">
+                                {% if user.perfil.direccion %}
+                                    {{ user.perfil.direccion }}
+                                {% else %}
+                                    <span class="text-muted">No especificada</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-1">Ciudad</h6>
+                            <p class="mb-0">
+                                {% if user.perfil.ciudad %}
+                                    {{ user.perfil.ciudad }}
+                                {% else %}
+                                    <span class="text-muted">No especificada</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-1">País</h6>
+                            <p class="mb-0">{{ user.perfil.pais|default:"No especificado" }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="text-muted mb-1">Código Postal</h6>
+                            <p class="mb-0">
+                                {% if user.perfil.codigo_postal %}
+                                    {{ user.perfil.codigo_postal }}
+                                {% else %}
+                                    <span class="text-muted">No especificado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Fecha de nacimiento</h6>
+                            <p class="mb-0">
+                                {% if user.perfil.fecha_nacimiento %}
+                                    {{ user.perfil.fecha_nacimiento|date:"d/m/Y" }}
+                                {% else %}
+                                    <span class="text-muted">No especificada</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Miembro desde</h6>
+                            <p class="mb-0">{{ user.date_joined|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas (opcional) -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-bag-check text-success" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2 mb-0">0</h3>
+                            <p class="text-muted mb-0">Pedidos realizados</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-heart text-danger" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2 mb-0">0</h3>
+                            <p class="text-muted mb-0">Favoritos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-star text-warning" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2 mb-0">0</h3>
+                            <p class="text-muted mb-0">Reseñas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

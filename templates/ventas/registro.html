@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrarse - Superventas{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb para navegación -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'ventas:index' %}" class="text-success text-decoration-none">
+                <i class="bi bi-house-door-fill"></i> Inicio
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Registro</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-header text-center py-4" style="background: linear-gradient(135deg, var(--color-verde-principal) 0%, var(--color-verde-claro) 100%);">
+                <h3 class="text-white mb-0">
+                    <i class="bi bi-person-plus-fill"></i> Crear Cuenta
+                </h3>
+            </div>
+            <div class="card-body p-5">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> Por favor corrige los errores a continuación.
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'ventas:registro' %}" id="formRegistro">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="first_name" class="form-label">
+                                <i class="bi bi-person"></i> Nombre <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required autofocus>
+                            <div class="invalid-feedback">
+                                Por favor ingresa tu nombre
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="last_name" class="form-label">
+                                <i class="bi bi-person"></i> Apellido <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            <div class="invalid-feedback">
+                                Por favor ingresa tu apellido
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="bi bi-envelope"></i> Email <span class="text-danger">*</span>
+                        </label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <small class="text-muted">Te enviaremos confirmaciones de pedido a este correo</small>
+                        <div class="invalid-feedback">
+                            Por favor ingresa un email válido
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="bi bi-person-circle"></i> Usuario <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="username" name="username" required minlength="4">
+                        <small class="text-muted">Mínimo 4 caracteres, sin espacios</small>
+                        <div class="invalid-feedback">
+                            El usuario debe tener al menos 4 caracteres
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="password1" class="form-label">
+                                <i class="bi bi-lock"></i> Contraseña <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password1" name="password1" required minlength="8">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength mt-2">
+                                <div class="progress" style="height: 5px;">
+                                    <div class="progress-bar" id="passwordStrengthBar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <small id="passwordStrengthText" class="text-muted"></small>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                <strong>Requisitos:</strong><br>
+                                <span id="req-length" class="text-danger"><i class="bi bi-x-circle"></i> Mínimo 8 caracteres</span><br>
+                                <span id="req-upper" class="text-danger"><i class="bi bi-x-circle"></i> Al menos una mayúscula</span><br>
+                                <span id="req-lower" class="text-danger"><i class="bi bi-x-circle"></i> Al menos una minúscula</span><br>
+                                <span id="req-number" class="text-danger"><i class="bi bi-x-circle"></i> Al menos un número</span><br>
+                                <span id="req-special" class="text-danger"><i class="bi bi-x-circle"></i> Al menos un carácter especial (!@#$%^&*)</span>
+                            </small>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="password2" class="form-label">
+                                <i class="bi bi-lock-fill"></i> Confirmar Contraseña <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password2" name="password2" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword2">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div id="password-match-feedback" class="mt-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                        <label class="form-check-label" for="terms">
+                            Acepto los <a href="#" class="text-success">términos y condiciones</a> y la 
+                            <a href="#" class="text-success">política de privacidad</a> <span class="text-danger">*</span>
+                        </label>
+                        <div class="invalid-feedback d-block" id="terms-feedback" style="display: none !important;">
+                            Debes aceptar los términos y condiciones
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100 mb-3" id="btnRegistrar">
+                        <i class="bi bi-person-plus"></i> Registrarme
+                    </button>
+                </form>
+            </div>
+            <div class="card-footer text-center bg-light py-3">
+                <p class="mb-0 text-muted">
+                    ¿Ya tienes cuenta? 
+                    <a href="{% url 'ventas:login' %}" class="text-success fw-bold text-decoration-none">
+                        Inicia sesión aquí
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Beneficios -->
+        <div class="row mt-4 g-3">
+            <div class="col-md-4">
+                <div class="card border-0 bg-light text-center p-3">
+                    <i class="bi bi-shield-check fs-1 text-success"></i>
+                    <h6 class="mt-2">100% Seguro</h6>
+                    <small class="text-muted">Tus datos están protegidos</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 bg-light text-center p-3">
+                    <i class="bi bi-gift fs-1 text-success"></i>
+                    <h6 class="mt-2">Ofertas Exclusivas</h6>
+                    <small class="text-muted">Descuentos especiales</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 bg-light text-center p-3">
+                    <i class="bi bi-lightning-charge fs-1 text-success"></i>
+                    <h6 class="mt-2">Compra Rápida</h6>
+                    <small class="text-muted">Checkout en un clic</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    font-weight: 500;
+}
+
+.breadcrumb-item.active {
+    color: var(--color-gris-oscuro);
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.form-control:focus {
+    border-color: var(--color-verde-principal);
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: var(--color-verde-principal);
+    border-color: var(--color-verde-principal);
+}
+
+.password-strength .progress-bar {
+    transition: all 0.3s ease;
+}
+
+.progress-bar.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.progress-bar.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+.progress-bar.bg-success {
+    background-color: var(--color-verde-principal) !important;
+}
+
+.input-group .btn-outline-secondary {
+    border-color: #ced4da;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background-color: var(--color-verde-principal);
+    border-color: var(--color-verde-principal);
+    color: white;
+}
+
+#password-match-feedback.text-success {
+    color: var(--color-verde-principal) !important;
+}
+
+.btn-success:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formRegistro');
+    const password1 = document.getElementById('password1');
+    const password2 = document.getElementById('password2');
+    const togglePassword1 = document.getElementById('togglePassword1');
+    const togglePassword2 = document.getElementById('togglePassword2');
+    const btnRegistrar = document.getElementById('btnRegistrar');
+    
+    // Requisitos de contraseña
+    const requirements = {
+        length: { regex: /.{8,}/, element: document.getElementById('req-length') },
+        upper: { regex: /[A-Z]/, element: document.getElementById('req-upper') },
+        lower: { regex: /[a-z]/, element: document.getElementById('req-lower') },
+        number: { regex: /[0-9]/, element: document.getElementById('req-number') },
+        special: { regex: /[!@#$%^&*(),.?":{}|<>]/, element: document.getElementById('req-special') }
+    };
+    
+    // Mostrar/ocultar contraseña
+    togglePassword1.addEventListener('click', function() {
+        const type = password1.getAttribute('type') === 'password' ? 'text' : 'password';
+        password1.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+    });
+    
+    togglePassword2.addEventListener('click', function() {
+        const type = password2.getAttribute('type') === 'password' ? 'text' : 'password';
+        password2.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+    });
+    
+    // Validar contraseña en tiempo real
+    password1.addEventListener('input', function() {
+        const password = this.value;
+        let strength = 0;
+        let allMet = true;
+        
+        // Verificar cada requisito
+        for (let key in requirements) {
+            if (requirements[key].regex.test(password)) {
+                requirements[key].element.className = 'text-success';
+                requirements[key].element.innerHTML = '<i class="bi bi-check-circle-fill"></i> ' + requirements[key].element.textContent.replace('✓', '').replace('✗', '').trim();
+                strength += 20;
+            } else {
+                requirements[key].element.className = 'text-danger';
+                requirements[key].element.innerHTML = '<i class="bi bi-x-circle"></i> ' + requirements[key].element.textContent.replace('✓', '').replace('✗', '').trim();
+                allMet = false;
+            }
+        }
+        
+        // Actualizar barra de fuerza
+        const strengthBar = document.getElementById('passwordStrengthBar');
+        const strengthText = document.getElementById('passwordStrengthText');
+        
+        strengthBar.style.width = strength + '%';
+        
+        if (strength <= 40) {
+            strengthBar.className = 'progress-bar bg-danger';
+            strengthText.textContent = 'Contraseña débil';
+            strengthText.className = 'text-danger';
+        } else if (strength <= 60) {
+            strengthBar.className = 'progress-bar bg-warning';
+            strengthText.textContent = 'Contraseña media';
+            strengthText.className = 'text-warning';
+        } else if (strength <= 80) {
+            strengthBar.className = 'progress-bar bg-info';
+            strengthText.textContent = 'Contraseña buena';
+            strengthText.className = 'text-info';
+        } else {
+            strengthBar.className = 'progress-bar bg-success';
+            strengthText.textContent = '¡Contraseña segura!';
+            strengthText.className = 'text-success';
+        }
+        
+        // Verificar coincidencia si ya hay algo en password2
+        if (password2.value) {
+            checkPasswordMatch();
+        }
+    });
+    
+    // Verificar coincidencia de contraseñas
+    password2.addEventListener('input', checkPasswordMatch);
+    
+    function checkPasswordMatch() {
+        const feedback = document.getElementById('password-match-feedback');
+        
+        if (password2.value === '') {
+            feedback.innerHTML = '';
+            return;
+        }
+        
+        if (password1.value === password2.value) {
+            feedback.innerHTML = '<small class="text-success"><i class="bi bi-check-circle-fill"></i> Las contraseñas coinciden</small>';
+            password2.classList.remove('is-invalid');
+            password2.classList.add('is-valid');
+        } else {
+            feedback.innerHTML = '<small class="text-danger"><i class="bi bi-x-circle"></i> Las contraseñas no coinciden</small>';
+            password2.classList.remove('is-valid');
+            password2.classList.add('is-invalid');
+        }
+    }
+    
+    // Validación del formulario
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Validar que todos los requisitos de contraseña se cumplan
+        for (let key in requirements) {
+            if (!requirements[key].regex.test(password1.value)) {
+                isValid = false;
+                password1.classList.add('is-invalid');
+                break;
+            }
+        }
+        
+        // Validar que las contraseñas coincidan
+        if (password1.value !== password2.value) {
+            isValid = false;
+            password2.classList.add('is-invalid');
+        }
+        
+        // Validar términos
+        const terms = document.getElementById('terms');
+        if (!terms.checked) {
+            isValid = false;
+            terms.classList.add('is-invalid');
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Por favor completa todos los campos correctamente');
+        }
+    });
+    
+    // Validación en tiempo real de campos
+    const inputs = form.querySelectorAll('input[required]');
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

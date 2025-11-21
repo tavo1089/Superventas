@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} - Superventas{% endblock %}
+
+{% block content %}
+<!-- Carrusel de productos destacados -->
+<div id="carouselProductos" class="carousel slide mb-5" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#carouselProductos" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#carouselProductos" data-bs-slide-to="1"></button>
+        <button type="button" data-bs-target="#carouselProductos" data-bs-slide-to="2"></button>
+        <button type="button" data-bs-target="#carouselProductos" data-bs-slide-to="3"></button>
+    </div>
+    <div class="carousel-inner rounded shadow">
+        <div class="carousel-item active">
+            <a href="{% url 'ventas:detalle_producto' 'tecnologia' 4 %}" class="d-block">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200&h=400&fit=crop" class="d-block w-100" alt="Auriculares Bluetooth" style="height: 400px; object-fit: cover;">
+                <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded p-3">
+                    <h5>Auriculares Bluetooth</h5>
+                    <p>Tecnología de última generación con cancelación de ruido</p>
+                    <span class="btn btn-success btn-sm">Ver más</span>
+                </div>
+            </a>
+        </div>
+        <div class="carousel-item">
+            <a href="{% url 'ventas:detalle_producto' 'tecnologia' 5 %}" class="d-block">
+                <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=1200&h=400&fit=crop" class="d-block w-100" alt="Smartwatch Ultra" style="height: 400px; object-fit: cover;">
+                <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded p-3">
+                    <h5>Smartwatch Ultra</h5>
+                    <p>Monitorea tu salud y mantente conectado</p>
+                    <span class="btn btn-success btn-sm">Ver más</span>
+                </div>
+            </a>
+        </div>
+        <div class="carousel-item">
+            <a href="{% url 'ventas:aire_libre' %}" class="d-block">
+                <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1200&h=400&fit=crop" class="d-block w-100" alt="Productos de Aire Libre" style="height: 400px; object-fit: cover;">
+                <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded p-3">
+                    <h5>Productos de Aire Libre</h5>
+                    <p>Comodidad y estilo para tus aventuras</p>
+                    <span class="btn btn-success btn-sm">Ver más</span>
+                </div>
+            </a>
+        </div>
+        <div class="carousel-item">
+            <a href="{% url 'ventas:detalle_producto' 'tecnologia' 2 %}" class="d-block">
+                <img src="https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=1200&h=400&fit=crop" class="d-block w-100" alt="Laptop Gaming RGB" style="height: 400px; object-fit: cover;">
+                <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded p-3">
+                    <h5>Laptop Gaming RGB</h5>
+                    <p>Potencia y portabilidad en un solo dispositivo</p>
+                    <span class="btn btn-success btn-sm">Ver más</span>
+                </div>
+            </a>
+        </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselProductos" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselProductos" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Siguiente</span>
+    </button>
+</div>
+
+<div class="row">
+    <div class="col-12 text-center mb-4">
+        <h2 class="display-5" style="color: var(--color-verde-principal);">{{ titulo }}</h2>
+        <p class="lead">{{ mensaje }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="bi bi-cart-plus"></i> Ventas
+                </h5>
+                <p class="card-text">Gestiona las ventas de tus productos</p>
+                <a href="#" class="btn btn-primary">Ver Ventas</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="bi bi-box-seam"></i> Productos
+                </h5>
+                <p class="card-text">Administra tu inventario de productos</p>
+                <a href="#" class="btn btn-primary">Ver Productos</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="bi bi-people"></i> Clientes
+                </h5>
+                <p class="card-text">Gestiona la información de tus clientes</p>
+                <a href="#" class="btn btn-primary">Ver Clientes</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-success border-0 shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-check-circle-fill"></i> ¡Bienvenido!</h4>
+            <p>Este es tu sistema de gestión de ventas. Selecciona una opción del menú para comenzar.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Sección de Ofertas Especiales con Carrusel de Tarjetas -->
+<div class="row mt-5">
+    <div class="col-12 mb-4">
+        <h3 class="text-center" style="color: var(--color-verde-principal);">
+            <i class="bi bi-tag-fill"></i> Ofertas Especiales
+        </h3>
+        <p class="text-center text-muted">Aprovecha estas promociones por tiempo limitado</p>
+    </div>
+</div>
+
+<div id="carouselOfertas" class="carousel slide mb-5" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#carouselOfertas" data-bs-slide-to="0" class="active bg-success"></button>
+        <button type="button" data-bs-target="#carouselOfertas" data-bs-slide-to="1" class="bg-success"></button>
+        <button type="button" data-bs-target="#carouselOfertas" data-bs-slide-to="2" class="bg-success"></button>
+    </div>
+    <div class="carousel-inner">
+        <!-- Slide 1 - Productos de Tecnología -->
+        <div class="carousel-item active">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 border-success">
+                        <div class="position-relative">
+                            <a href="{% url 'ventas:detalle_producto' 'tecnologia' 1 %}">
+                                <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop" class="card-img-top" alt="Smartphone" style="height: 250px; object-fit: cover; cursor: pointer;">
+                            </a>
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-30%</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <a href="{% url 'ventas:detalle_producto' 'tecnologia' 1 %}" class="text-decoration-none text-success">
+                                    Smartphone Galaxy Pro
+                                </a>
+                            </h5>
+                            <p class="card-text">Última tecnología con pantalla AMOLED</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted text-decoration-line-through">$899.99</span>
+                                <span class="h5 text-success mb-0">$764.99</span>
+                            </div>
+                            <button onclick="agregarAlCarrito('Smartphone Galaxy Pro', 899.99, 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&h=300&fit=crop', 15)" class="btn btn-success w-100 mt-2">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 border-success">
+                        <div class="position-relative">
+                            <a href="{% url 'ventas:detalle_producto' 'tecnologia' 2 %}">
+                                <img src="https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&h=300&fit=crop" class="card-img-top" alt="Laptop Gaming" style="height: 250px; object-fit: cover; cursor: pointer;">
+                            </a>
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-20%</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <a href="{% url 'ventas:detalle_producto' 'tecnologia' 2 %}" class="text-decoration-none text-success">
+                                    Laptop Gaming RGB
+                                </a>
+                            </h5>
+                            <p class="card-text">RTX 4060, 16GB RAM, SSD 512GB</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted text-decoration-line-through">$1299.99</span>
+                                <span class="h5 text-success mb-0">$1039.99</span>
+                            </div>
+                            <button onclick="agregarAlCarrito('Laptop Gaming RGB', 1299.99, 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=400&h=300&fit=crop', 20)" class="btn btn-success w-100 mt-2">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 border-success">
+                        <div class="position-relative">
+                            <a href="{% url 'ventas:detalle_producto' 'tecnologia' 5 %}">
+                                <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&h=300&fit=crop" class="card-img-top" alt="Smartwatch" style="height: 250px; object-fit: cover; cursor: pointer;">
+                            </a>
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-30%</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <a href="{% url 'ventas:detalle_producto' 'tecnologia' 5 %}" class="text-decoration-none text-success">
+                                    Smartwatch Ultra
+                                </a>
+                            </h5>
+                            <p class="card-text">Monitor cardíaco y GPS integrado</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted text-decoration-line-through">$399.99</span>
+                                <span class="h5 text-success mb-0">$279.99</span>
+                            </div>
+                            <button onclick="agregarAlCarrito('Smartwatch Ultra', 399.99, 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&h=300&fit=crop', 30)" class="btn btn-success w-100 mt-2">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 2 - Productos de Hogar -->
+        <div class="carousel-item">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 border-success">
+                        <div class="position-relative">
+                            <a href="{% url 'ventas:detalle_producto' 'electrodomesticos' 4 %}">
+                                <img src="https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=300&fit=crop" class="card-img-top" alt="Aspiradora Robot" style="height: 250px; object-fit: cover; cursor: pointer;">
+                            </a>
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-35%</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <a href="{% url 'ventas:detalle_producto' 'electrodomesticos' 4 %}" class="text-decoration-none text-success">
+                                    Aspiradora Robot
+                                </a>
+                            </h5>
+                            <p class="card-text">Limpieza automática inteligente</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted text-decoration-line-through">$400</span>
+                                <span class="h5 text-success mb-0">$260</span>
+                            </div>
+                            <button onclick="agregarAlCarrito('Aspiradora Robot', 400, 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=300&fit=crop', 35)" class="btn btn-success w-100 mt-2">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 border-success">
+                        <div class="position-relative">
+                            <a href="{% url 'ventas:detalle_producto' 'electrodomesticos' 6 %}">
+                                <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop" class="card-img-top" alt="Cafetera" style="height: 250px; object-fit: cover; cursor: pointer;">
+                            </a>
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-20%</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <a href="{% url 'ventas:detalle_producto' 'electrodomesticos' 6 %}" class="text-decoration-none text-success">
+                                    Cafetera Express
+                                </a>
+                            </h5>
+                            <p class="card-text">Café profesional en tu hogar</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted text-decoration-line-through">$180</span>
+                                <span class="h5 text-success mb-0">$144</span>
+                            </div>
+                            <button onclick="agregarAlCarrito('Cafetera Express', 180, 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=300&fit=crop', 20)" class="btn btn-success w-100 mt-2">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 border-success">
+                        <div class="position-relative">
+                            <a href="{% url 'ventas:detalle_producto' 'electrodomesticos' 5 %}">
+                                <img src="https://images.unsplash.com/photo-1556911220-bff31c812dba?w=400&h=300&fit=crop" class="card-img-top" alt="Licuadora" style="height: 250px; object-fit: cover; cursor: pointer;">
+                            </a>
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-30%</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <a href="{% url 'ventas:detalle_producto' 'electrodomesticos' 5 %}" class="text-decoration-none text-success">
+                                    Licuadora Pro
+                                </a>
+                            </h5>
+                            <p class="card-text">1200W de potencia, 10 velocidades</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted text-decoration-line-through">$120</span>
+                                <span class="h5 text-success mb-0">$84</span>
+                            </div>
+                            <button onclick="agregarAlCarrito('Licuadora Pro', 120, 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=400&h=300&fit=crop', 30)" class="btn btn-success w-100 mt-2">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 3 - Productos Deportivos -->
+        <div class="carousel-item">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 border-success">
+                        <div class="position-relative">
+                            <a href="{% url 'ventas:detalle_producto' 'salud' 2 %}">
+                                <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop" class="card-img-top" alt="Pesas" style="height: 250px; object-fit: cover; cursor: pointer;">
+                            </a>
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-45%</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <a href="{% url 'ventas:detalle_producto' 'salud' 2 %}" class="text-decoration-none text-success">
+                                    Set de Pesas
+                                </a>
+                            </h5>
+                            <p class="card-text">Kit completo para tu gimnasio en casa</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted text-decoration-line-through">$200</span>
+                                <span class="h5 text-success mb-0">$110</span>
+                            </div>
+                            <button onclick="agregarAlCarrito('Set de Pesas', 200, 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&h=300&fit=crop', 45)" class="btn btn-success w-100 mt-2">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 border-success">
+                        <div class="position-relative">
+                            <a href="{% url 'ventas:aire_libre' %}">
+                                <img src="https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=400&h=300&fit=crop" class="card-img-top" alt="Bicicleta" style="height: 250px; object-fit: cover; cursor: pointer;">
+                            </a>
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-25%</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <a href="{% url 'ventas:aire_libre' %}" class="text-decoration-none text-success">
+                                    Bicicleta Montaña
+                                </a>
+                            </h5>
+                            <p class="card-text">21 velocidades, suspensión completa</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted text-decoration-line-through">$600</span>
+                                <span class="h5 text-success mb-0">$450</span>
+                            </div>
+                            <button onclick="agregarAlCarrito('Bicicleta Montaña', 600, 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=400&h=300&fit=crop', 25)" class="btn btn-success w-100 mt-2">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100 border-success">
+                        <div class="position-relative">
+                            <a href="{% url 'ventas:detalle_producto' 'salud' 4 %}">
+                                <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=400&h=300&fit=crop" class="card-img-top" alt="Yoga Mat" style="height: 250px; object-fit: cover; cursor: pointer;">
+                            </a>
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">-50%</span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-success">
+                                <a href="{% url 'ventas:detalle_producto' 'salud' 4 %}" class="text-decoration-none text-success">
+                                    Mat de Yoga Premium
+                                </a>
+                            </h5>
+                            <p class="card-text">Material ecológico, antideslizante</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted text-decoration-line-through">$60</span>
+                                <span class="h5 text-success mb-0">$30</span>
+                            </div>
+                            <button onclick="agregarAlCarrito('Mat de Yoga Premium', 60, 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=400&h=300&fit=crop', 50)" class="btn btn-success w-100 mt-2">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselOfertas" data-bs-slide="prev" style="filter: invert(1);">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselOfertas" data-bs-slide="next" style="filter: invert(1);">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Siguiente</span>
+    </button>
+</div>
+
+<style>
+/* Estilo para las imágenes clickeables del carrusel */
+.carousel-item a {
+    position: relative;
+    display: block;
+    overflow: hidden;
+}
+
+.carousel-item a img {
+    transition: transform 0.3s ease;
+}
+
+.carousel-item a:hover img {
+    transform: scale(1.05);
+}
+
+.carousel-item a:hover .carousel-caption {
+    background-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* Estilo para las tarjetas de productos */
+.card img {
+    transition: transform 0.3s ease;
+}
+
+.card a:hover img {
+    transform: scale(1.1);
+}
+
+.card h5 a:hover {
+    text-decoration: underline !important;
+}
+</style>
+{% endblock %}

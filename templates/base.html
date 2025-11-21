@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Superventas{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --color-verde-principal: #198754;
+            --color-verde-oscuro: #146c43;
+            --color-verde-claro: #20c997;
+            --color-negro: #212529;
+            --color-gris-oscuro: #343a40;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        /* Navbar con estilo verde profesional */
+        .navbar {
+            background: linear-gradient(135deg, var(--color-verde-oscuro) 0%, var(--color-verde-principal) 100%) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-menu-hamburguesa {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid white;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-menu-hamburguesa:hover {
+            background-color: white;
+            color: var(--color-verde-principal);
+        }
+        
+        /* Barra de búsqueda con estilo profesional */
+        .search-input {
+            border: 2px solid white;
+            border-radius: 25px 0 0 25px;
+        }
+        
+        .search-input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+        }
+        
+        .btn-search {
+            background-color: white;
+            color: var(--color-verde-principal);
+            border: 2px solid white;
+            border-radius: 0 25px 25px 0;
+            font-weight: 600;
+        }
+        
+        .btn-search:hover {
+            background-color: var(--color-verde-claro);
+            color: white;
+            border-color: var(--color-verde-claro);
+        }
+        
+        /* Menú lateral offcanvas */
+        .offcanvas-header {
+            background: linear-gradient(135deg, var(--color-verde-oscuro) 0%, var(--color-verde-principal) 100%);
+        }
+        
+        .list-group-item {
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .list-group-item:hover {
+            background-color: #f8f9fa;
+            border-left-color: var(--color-verde-principal);
+            transform: translateX(5px);
+        }
+        
+        .list-group-item a {
+            font-weight: 500;
+            color: var(--color-negro) !important;
+        }
+        
+        .list-group-item a:hover {
+            color: var(--color-verde-principal) !important;
+        }
+        
+        /* Iconos de categorías con colores temáticos */
+        .categoria-icon {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--color-negro) !important;
+            color: white !important;
+            border-top: 4px solid var(--color-verde-principal);
+        }
+        
+        footer p {
+            color: white !important;
+        }
+        
+        /* Iconos de redes sociales */
+        .social-icon {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icon:hover {
+            background-color: var(--color-verde-principal);
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 5px 15px rgba(25, 135, 84, 0.4);
+        }
+        
+        .social-icon i {
+            line-height: 50px;
+        }
+        
+        /* Badge del carrito */
+        .badge-carrito {
+            background-color: var(--color-verde-claro) !important;
+            font-weight: 700;
+        }
+        
+        /* Dropdown menu de usuario */
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 10px;
+        }
+        
+        .dropdown-item {
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--color-verde-principal);
+            color: white !important;
+        }
+        
+        .dropdown-item i {
+            margin-right: 8px;
+            width: 20px;
+        }
+        
+        /* Cards del index */
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(25, 135, 84, 0.2);
+        }
+        
+        .card-title {
+            color: var(--color-verde-principal);
+            font-weight: 700;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-verde-principal);
+            border-color: var(--color-verde-principal);
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--color-verde-oscuro);
+            border-color: var(--color-verde-oscuro);
+        }
+        
+        /* Botón Volver Arriba */
+        .btn-volver-arriba {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            z-index: 999;
+            background: linear-gradient(135deg, var(--color-verde-oscuro), var(--color-verde-principal));
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-volver-arriba.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .btn-volver-arriba:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(25, 135, 84, 0.6);
+        }
+        
+        /* Chatbot Styles */
+        #chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .chatbot-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-verde-oscuro), var(--color-verde-principal));
+            border: none;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(25, 135, 84, 0.6);
+        }
+        
+        .chatbot-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 40px rgba(0,0,0,0.3);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chatbot-window.active {
+            display: flex;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .chatbot-header {
+            background: linear-gradient(135deg, var(--color-verde-oscuro), var(--color-verde-principal));
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chatbot-status {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+        
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #4caf50;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .btn-close-chat {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+        
+        .chatbot-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message-content {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+        
+        .bot-message .message-content {
+            background-color: var(--color-verde-principal);
+            color: white;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .user-message {
+            text-align: right;
+        }
+        
+        .user-message .message-content {
+            background-color: #e9ecef;
+            color: var(--color-negro);
+            border-bottom-right-radius: 5px;
+        }
+        
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .quick-reply-btn {
+            background-color: white;
+            border: 2px solid var(--color-verde-principal);
+            color: var(--color-verde-principal);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-reply-btn:hover {
+            background-color: var(--color-verde-principal);
+            color: white;
+        }
+        
+        .chatbot-footer {
+            display: flex;
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        #chatbot-input {
+            flex: 1;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            padding: 10px 15px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        
+        #chatbot-input:focus {
+            border-color: var(--color-verde-principal);
+        }
+        
+        .btn-send {
+            background-color: var(--color-verde-principal);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-send:hover {
+            background-color: var(--color-verde-oscuro);
+            transform: scale(1.1);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{% url 'ventas:index' %}">
+                    <i class="bi bi-shop"></i> SUPERVENTAS
+                </a>
+                
+                <!-- Botón de menú hamburguesa (siempre visible) -->
+                <button class="btn btn-menu-hamburguesa me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuCategorias">
+                    <i class="bi bi-list"></i> Menú
+                </button>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <!-- Barra de búsqueda más grande -->
+                    <form class="d-flex flex-grow-1 me-3 ms-3" role="search" action="{% url 'ventas:buscar' %}" method="get">
+                        <div class="input-group">
+                            <input class="form-control form-control-lg search-input" type="search" name="q" placeholder="Buscar productos..." aria-label="Buscar">
+                            <button class="btn btn-lg btn-search" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Carrito e Iniciar sesión -->
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link position-relative" href="{% url 'ventas:carrito' %}">
+                                <i class="bi bi-cart3 fs-5"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill badge-carrito">
+                                    0
+                                </span>
+                            </a>
+                        </li>
+                        {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle fs-5"></i> {{ user.first_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="{% url 'ventas:perfil' %}"><i class="bi bi-person"></i> Mi Perfil</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-box-seam"></i> Mis Pedidos</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-heart"></i> Favoritos</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'ventas:logout' %}"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                            </ul>
+                        </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'ventas:login' %}">
+                                <i class="bi bi-person-circle fs-5"></i> Iniciar Sesión
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Menú lateral offcanvas con categorías -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="menuCategorias">
+        <div class="offcanvas-header text-white">
+            <h5 class="offcanvas-title">
+                <i class="bi bi-grid-3x3-gap"></i> Categorías
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <a href="{% url 'ventas:belleza' %}" class="text-decoration-none d-block py-2">
+                        <i class="bi bi-heart-fill categoria-icon" style="color: #e91e63;"></i> Belleza
+                    </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{% url 'ventas:tecnologia' %}" class="text-decoration-none d-block py-2">
+                        <i class="bi bi-laptop categoria-icon" style="color: #2196f3;"></i> Tecnología
+                    </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{% url 'ventas:electrodomesticos' %}" class="text-decoration-none d-block py-2">
+                        <i class="bi bi-plug categoria-icon" style="color: #ff9800;"></i> Electrodomésticos
+                    </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{% url 'ventas:ferreteria' %}" class="text-decoration-none d-block py-2">
+                        <i class="bi bi-tools categoria-icon" style="color: #607d8b;"></i> Ferretería y Construcción
+                    </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{% url 'ventas:bebe' %}" class="text-decoration-none d-block py-2">
+                        <i class="bi bi-balloon-heart categoria-icon" style="color: #f06292;"></i> Bebé y Niños
+                    </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{% url 'ventas:aire_libre' %}" class="text-decoration-none d-block py-2">
+                        <i class="bi bi-tree categoria-icon" style="color: #4caf50;"></i> Aire Libre
+                    </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{% url 'ventas:entretenimiento' %}" class="text-decoration-none d-block py-2">
+                        <i class="bi bi-controller categoria-icon" style="color: #9c27b0;"></i> Entretenimiento
+                    </a>
+                </li>
+                <li class="list-group-item">
+                    <a href="{% url 'ventas:salud' %}" class="text-decoration-none d-block py-2">
+                        <i class="bi bi-heart-pulse categoria-icon" style="color: #f44336;"></i> Salud y Bienestar
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <main class="container my-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Botón Volver Arriba -->
+    <button id="btn-volver-arriba" class="btn-volver-arriba" onclick="volverArriba()">
+        <i class="bi bi-arrow-up-circle-fill fs-3"></i>
+    </button>
+
+    <!-- Chatbot flotante -->
+    <div id="chatbot-container">
+        <!-- Botón del chatbot -->
+        <button id="chatbot-button" class="chatbot-toggle" onclick="toggleChat()">
+            <i class="bi bi-chat-dots-fill fs-4"></i>
+        </button>
+        
+        <!-- Ventana del chatbot -->
+        <div id="chatbot-window" class="chatbot-window">
+            <div class="chatbot-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-robot me-2 fs-5"></i>
+                    <div>
+                        <strong>Asistente Virtual</strong>
+                        <div class="chatbot-status">
+                            <span class="status-dot"></span> En línea
+                        </div>
+                    </div>
+                </div>
+                <button onclick="toggleChat()" class="btn-close-chat">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            
+            <div class="chatbot-body" id="chatbot-body">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <strong>¡Hola! 👋</strong><br>
+                        Soy tu asistente virtual de Superventas. ¿En qué puedo ayudarte hoy?
+                    </div>
+                </div>
+                <div class="quick-replies">
+                    <button class="quick-reply-btn" onclick="sendQuickReply('productos')">
+                        🛍️ Ver productos
+                    </button>
+                    <button class="quick-reply-btn" onclick="sendQuickReply('ofertas')">
+                        🏷️ Ofertas
+                    </button>
+                    <button class="quick-reply-btn" onclick="sendQuickReply('envios')">
+                        📦 Envíos
+                    </button>
+                    <button class="quick-reply-btn" onclick="sendQuickReply('soporte')">
+                        💬 Soporte
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chatbot-footer">
+                <input type="text" id="chatbot-input" placeholder="Escribe tu mensaje..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()" class="btn-send">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-4 mt-5">
+        <div class="container">
+            <!-- Redes Sociales -->
+            <div class="mb-3">
+                <a href="https://facebook.com" target="_blank" class="text-white mx-2 social-icon">
+                    <i class="bi bi-facebook fs-3"></i>
+                </a>
+                <a href="https://instagram.com" target="_blank" class="text-white mx-2 social-icon">
+                    <i class="bi bi-instagram fs-3"></i>
+                </a>
+                <a href="https://tiktok.com" target="_blank" class="text-white mx-2 social-icon">
+                    <i class="bi bi-tiktok fs-3"></i>
+                </a>
+                <a href="https://wa.me/1234567890" target="_blank" class="text-white mx-2 social-icon">
+                    <i class="bi bi-whatsapp fs-3"></i>
+                </a>
+            </div>
+            <p class="mb-0">&copy; 2025 SUPERVENTAS - Todos los derechos reservados</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chatbot JavaScript -->
+    <script>
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatbot-window');
+            chatWindow.classList.toggle('active');
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chatbot-input');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+            
+            // Agregar mensaje del usuario
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Simular respuesta del bot
+            setTimeout(() => {
+                const botResponse = getBotResponse(message);
+                addMessage(botResponse, 'bot');
+            }, 1000);
+        }
+        
+        function sendQuickReply(type) {
+            let message = '';
+            let response = '';
+            
+            switch(type) {
+                case 'productos':
+                    message = '¿Qué productos tienen disponibles?';
+                    response = 'Tenemos una amplia variedad de productos en las siguientes categorías: Tecnología, Electrodomésticos, Belleza, Ferretería, Bebé y Niños, Aire Libre, Entretenimiento y Salud. ¿Te gustaría ver alguna categoría en particular?';
+                    break;
+                case 'ofertas':
+                    message = '¿Tienen ofertas activas?';
+                    response = '¡Sí! Tenemos ofertas especiales con descuentos de hasta el 50% en productos seleccionados. Revisa nuestra sección de "Ofertas Especiales" en la página principal. 🏷️';
+                    break;
+                case 'envios':
+                    message = '¿Cómo funcionan los envíos?';
+                    response = 'Realizamos envíos a todo el país. Envío gratis en compras superiores a $100. El tiempo de entrega es de 3-5 días hábiles. 📦';
+                    break;
+                case 'soporte':
+                    message = 'Necesito soporte';
+                    response = 'Estoy aquí para ayudarte. Puedes escribirme tu consulta o contactarnos por WhatsApp, email o teléfono. ¿En qué puedo asistirte? 💬';
+                    break;
+            }
+            
+            addMessage(message, 'user');
+            setTimeout(() => {
+                addMessage(response, 'bot');
+            }, 1000);
+        }
+        
+        function addMessage(text, sender) {
+            const chatBody = document.getElementById('chatbot-body');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+            
+            messageDiv.appendChild(contentDiv);
+            chatBody.appendChild(messageDiv);
+            
+            // Scroll al final
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+        
+        function getBotResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            if (lowerMessage.includes('hola') || lowerMessage.includes('buenos')) {
+                return '¡Hola! 👋 ¿En qué puedo ayudarte hoy?';
+            } else if (lowerMessage.includes('precio') || lowerMessage.includes('costo')) {
+                return 'Nuestros precios son muy competitivos. Puedes ver los precios actualizados en cada producto. ¿Buscas algo en particular?';
+            } else if (lowerMessage.includes('envio') || lowerMessage.includes('entrega')) {
+                return 'Realizamos envíos a todo el país. Envío gratis en compras superiores a $100. Tiempo de entrega: 3-5 días hábiles. 📦';
+            } else if (lowerMessage.includes('pago') || lowerMessage.includes('tarjeta')) {
+                return 'Aceptamos todos los métodos de pago: tarjetas de crédito/débito, transferencias bancarias y pagos en efectivo contra entrega. 💳';
+            } else if (lowerMessage.includes('horario')) {
+                return 'Nuestro horario de atención es de Lunes a Viernes de 9:00 AM a 6:00 PM. Sábados de 9:00 AM a 2:00 PM. 🕐';
+            } else if (lowerMessage.includes('gracias')) {
+                return '¡De nada! Estoy aquí para ayudarte. ¿Hay algo más en lo que pueda asistirte? 😊';
+            } else {
+                return 'Interesante pregunta. Para una respuesta más detallada, puedes contactarnos por WhatsApp o llamarnos directamente. ¿Hay algo más en lo que pueda ayudarte?';
+            }
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        // === SISTEMA DE CARRITO DE COMPRAS ===
+        
+        // Inicializar carrito al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            actualizarContadorCarrito();
+        });
+        
+        function obtenerCarrito() {
+            const carrito = localStorage.getItem('carrito');
+            return carrito ? JSON.parse(carrito) : [];
+        }
+        
+        function guardarCarrito(carrito) {
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            actualizarContadorCarrito();
+        }
+        
+        function agregarAlCarrito(nombre, precio, imagen, descuento = 0) {
+            const carrito = obtenerCarrito();
+            
+            // Calcular precio final
+            const precioFinal = descuento > 0 ? precio * (1 - descuento / 100) : precio;
+            
+            // Buscar si el producto ya existe
+            const productoExistente = carrito.find(item => item.nombre === nombre);
+            
+            if (productoExistente) {
+                productoExistente.cantidad += 1;
+            } else {
+                carrito.push({
+                    nombre: nombre,
+                    precio: precio,
+                    precioFinal: precioFinal.toFixed(2),
+                    imagen: imagen,
+                    descuento: descuento,
+                    cantidad: 1
+                });
+            }
+            
+            guardarCarrito(carrito);
+            
+            // Mostrar notificación
+            mostrarNotificacion('✓ Producto agregado al carrito');
+        }
+        
+        function actualizarContadorCarrito() {
+            const carrito = obtenerCarrito();
+            const totalProductos = carrito.reduce((total, item) => total + item.cantidad, 0);
+            const badge = document.querySelector('.badge-carrito');
+            if (badge) {
+                badge.textContent = totalProductos;
+            }
+        }
+        
+        function mostrarNotificacion(mensaje) {
+            // Crear notificación toast
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = mensaje;
+            toast.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: linear-gradient(135deg, var(--color-verde-oscuro), var(--color-verde-principal));
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // Agregar estilos para las animaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Función para volver arriba
+        function volverArriba() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        
+        // Mostrar/ocultar botón volver arriba según scroll
+        window.addEventListener('scroll', function() {
+            const btnVolverArriba = document.getElementById('btn-volver-arriba');
+            if (window.scrollY > 300) {
+                btnVolverArriba.classList.add('visible');
+            } else {
+                btnVolverArriba.classList.remove('visible');
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

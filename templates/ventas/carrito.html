@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Carrito de Compras - Superventas{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb para navegación -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a href="{% url 'ventas:index' %}" class="text-success text-decoration-none">
+                <i class="bi bi-house-door-fill"></i> Inicio
+            </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Carrito</li>
+    </ol>
+</nav>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="display-5">
+                    <i class="bi bi-cart3"></i> Carrito de Compras
+                </h1>
+                <p class="lead mb-0">Revisa y confirma tus productos antes de realizar la compra</p>
+            </div>
+            <a href="{% url 'ventas:index' %}" class="btn btn-outline-success btn-lg">
+                <i class="bi bi-arrow-left"></i> Seguir Comprando
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Productos del carrito -->
+    <div class="col-lg-8">
+        <div id="carrito-vacio" class="alert alert-info d-none">
+            <i class="bi bi-info-circle"></i> Tu carrito está vacío. 
+            <a href="{% url 'ventas:index' %}" class="alert-link">Comienza a comprar</a>
+        </div>
+        
+        <div id="productos-carrito" class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-bag-check"></i> Productos Seleccionados</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="lista-productos">
+                    <!-- Los productos se cargarán dinámicamente aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resumen del pedido -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-calculator"></i> Resumen del Pedido</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Descuentos:</span>
+                        <span class="text-success" id="descuentos">-$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Envío:</span>
+                        <span id="envio">GRATIS</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <strong class="h4 text-success" id="total">$0.00</strong>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success btn-lg w-100 mb-2" onclick="realizarCompra()">
+                    <i class="bi bi-credit-card"></i> Proceder al Pago
+                </button>
+                
+                <a href="{% url 'ventas:index' %}" class="btn btn-outline-secondary w-100">
+                    <i class="bi bi-arrow-left"></i> Seguir Comprando
+                </a>
+                
+                <div class="alert alert-success mt-3 mb-0">
+                    <small>
+                        <i class="bi bi-truck"></i> Envío gratis en compras superiores a $100
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    font-weight: 500;
+}
+
+.breadcrumb-item.active {
+    color: var(--color-gris-oscuro);
+}
+
+.producto-item {
+    padding: 15px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.producto-item:last-child {
+    border-bottom: none;
+}
+
+.producto-item:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-cantidad {
+    width: 35px;
+    height: 35px;
+    padding: 0;
+}
+
+.cantidad-display {
+    width: 50px;
+    text-align: center;
+    font-weight: bold;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    cargarCarrito();
+});
+
+function cargarCarrito() {
+    const carrito = obtenerCarrito();
+    const listaProductos = document.getElementById('lista-productos');
+    const carritoVacio = document.getElementById('carrito-vacio');
+    const productosCarrito = document.getElementById('productos-carrito');
+    
+    if (carrito.length === 0) {
+        carritoVacio.classList.remove('d-none');
+        productosCarrito.classList.add('d-none');
+        return;
+    }
+    
+    carritoVacio.classList.add('d-none');
+    productosCarrito.classList.remove('d-none');
+    
+    listaProductos.innerHTML = '';
+    
+    carrito.forEach((producto, index) => {
+        const item = document.createElement('div');
+        item.className = 'producto-item';
+        item.innerHTML = `
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <img src="${producto.imagen}" class="img-fluid rounded" alt="${producto.nombre}">
+                </div>
+                <div class="col-md-4">
+                    <h6 class="mb-1">${producto.nombre}</h6>
+                    ${producto.descuento > 0 ? 
+                        `<small class="text-muted text-decoration-line-through">$${producto.precio}</small>
+                         <span class="badge bg-danger ms-1">-${producto.descuento}%</span>` 
+                        : ''}
+                    <div class="text-success fw-bold">$${producto.precioFinal}</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <button class="btn btn-outline-secondary btn-cantidad" onclick="cambiarCantidad(${index}, -1)">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <input type="text" class="form-control cantidad-display" value="${producto.cantidad}" readonly>
+                        <button class="btn btn-outline-secondary btn-cantidad" onclick="cambiarCantidad(${index}, 1)">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <strong>$${(producto.precioFinal * producto.cantidad).toFixed(2)}</strong>
+                </div>
+                <div class="col-md-1 text-end">
+                    <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${index})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        listaProductos.appendChild(item);
+    });
+    
+    actualizarResumen();
+}
+
+function cambiarCantidad(index, cambio) {
+    const carrito = obtenerCarrito();
+    carrito[index].cantidad += cambio;
+    
+    if (carrito[index].cantidad <= 0) {
+        carrito.splice(index, 1);
+    }
+    
+    guardarCarrito(carrito);
+    cargarCarrito();
+}
+
+function eliminarProducto(index) {
+    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+        const carrito = obtenerCarrito();
+        carrito.splice(index, 1);
+        guardarCarrito(carrito);
+        cargarCarrito();
+    }
+}
+
+function actualizarResumen() {
+    const carrito = obtenerCarrito();
+    let subtotal = 0;
+    let totalDescuentos = 0;
+    
+    carrito.forEach(producto => {
+        const precioOriginal = producto.precio * producto.cantidad;
+        const precioFinal = producto.precioFinal * producto.cantidad;
+        subtotal += precioOriginal;
+        totalDescuentos += (precioOriginal - precioFinal);
+    });
+    
+    const total = subtotal - totalDescuentos;
+    
+    document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('descuentos').textContent = `-$${totalDescuentos.toFixed(2)}`;
+    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    
+    // Actualizar envío
+    const envioElement = document.getElementById('envio');
+    if (total >= 100) {
+        envioElement.innerHTML = '<span class="text-success">GRATIS</span>';
+    } else {
+        envioElement.textContent = '$10.00';
+    }
+}
+
+function realizarCompra() {
+    const carrito = obtenerCarrito();
+    
+    if (carrito.length === 0) {
+        alert('Tu carrito está vacío');
+        return;
+    }
+    
+    // Simular proceso de compra
+    alert('¡Gracias por tu compra! En un proyecto real, aquí se procesaría el pago.');
+    
+    // Vaciar carrito
+    localStorage.removeItem('carrito');
+    actualizarContadorCarrito();
+    cargarCarrito();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Perfil - Superventas{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'ventas:index' %}">Inicio</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'ventas:perfil' %}">Mi Perfil</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Editar Perfil</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Editar Perfil</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Información de la Cuenta -->
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="bi bi-person-badge me-2"></i>Información de la Cuenta
+                        </h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                {{ user_form.username.label_tag }}
+                                {{ user_form.username }}
+                                {% if user_form.username.errors %}
+                                    <div class="text-danger small">{{ user_form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ user_form.first_name.label_tag }}
+                                {{ user_form.first_name }}
+                                {% if user_form.first_name.errors %}
+                                    <div class="text-danger small">{{ user_form.first_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ user_form.last_name.label_tag }}
+                                {{ user_form.last_name }}
+                                {% if user_form.last_name.errors %}
+                                    <div class="text-danger small">{{ user_form.last_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                {{ user_form.email.label_tag }}
+                                {{ user_form.email }}
+                                {% if user_form.email.errors %}
+                                    <div class="text-danger small">{{ user_form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Información Personal -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4">
+                            <i class="bi bi-person-lines-fill me-2"></i>Información Personal
+                        </h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                {{ perfil_form.foto.label_tag }}
+                                {% if user.perfil.foto %}
+                                    <div class="mb-2">
+                                        <img src="{{ user.perfil.foto.url }}" alt="Foto actual" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;">
+                                    </div>
+                                {% endif %}
+                                {{ perfil_form.foto }}
+                                <small class="text-muted d-block mt-1">Formatos aceptados: JPG, PNG. Tamaño máximo: 5MB</small>
+                                {% if perfil_form.foto.errors %}
+                                    <div class="text-danger small">{{ perfil_form.foto.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ perfil_form.telefono.label_tag }}
+                                {{ perfil_form.telefono }}
+                                {% if perfil_form.telefono.errors %}
+                                    <div class="text-danger small">{{ perfil_form.telefono.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ perfil_form.fecha_nacimiento.label_tag }}
+                                {{ perfil_form.fecha_nacimiento }}
+                                {% if perfil_form.fecha_nacimiento.errors %}
+                                    <div class="text-danger small">{{ perfil_form.fecha_nacimiento.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Dirección -->
+                        <h5 class="border-bottom pb-2 mb-3 mt-4">
+                            <i class="bi bi-geo-alt me-2"></i>Dirección
+                        </h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                {{ perfil_form.direccion.label_tag }}
+                                {{ perfil_form.direccion }}
+                                {% if perfil_form.direccion.errors %}
+                                    <div class="text-danger small">{{ perfil_form.direccion.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ perfil_form.ciudad.label_tag }}
+                                {{ perfil_form.ciudad }}
+                                {% if perfil_form.ciudad.errors %}
+                                    <div class="text-danger small">{{ perfil_form.ciudad.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {{ perfil_form.pais.label_tag }}
+                                {{ perfil_form.pais }}
+                                {% if perfil_form.pais.errors %}
+                                    <div class="text-danger small">{{ perfil_form.pais.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ perfil_form.codigo_postal.label_tag }}
+                                {{ perfil_form.codigo_postal }}
+                                {% if perfil_form.codigo_postal.errors %}
+                                    <div class="text-danger small">{{ perfil_form.codigo_postal.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-1"></i>Guardar Cambios
+                            </button>
+                            <a href="{% url 'ventas:perfil' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-1"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
