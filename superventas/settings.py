@@ -47,6 +47,7 @@ CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',  # Debe ir ANTES de django.contrib.admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -152,3 +153,158 @@ except:
     TWILIO_AUTH_TOKEN = ''
     TWILIO_WHATSAPP_NUMBER = ''
 
+# Configuración Mercado Pago
+# Para obtener tus credenciales, ve a: https://www.mercadopago.com.uy/developers/panel
+try:
+    MERCADOPAGO_ACCESS_TOKEN = env('MERCADOPAGO_ACCESS_TOKEN', default='')
+    MERCADOPAGO_PUBLIC_KEY = env('MERCADOPAGO_PUBLIC_KEY', default='')
+except:
+    MERCADOPAGO_ACCESS_TOKEN = ''
+    MERCADOPAGO_PUBLIC_KEY = ''
+
+# Configuración Stripe
+# Para obtener tus credenciales, ve a: https://dashboard.stripe.com/test/apikeys
+try:
+    STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY', default='')
+    STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='')
+except:
+    STRIPE_PUBLIC_KEY = ''
+    STRIPE_SECRET_KEY = ''
+
+# Configuración de Email
+# Para Gmail: https://myaccount.google.com/apppasswords (necesitas contraseña de aplicación)
+# Modo desarrollo: los emails se muestran en consola
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Modo producción: descomentar las siguientes líneas y comentar la línea de arriba
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
+# EMAIL_PORT = env.int('EMAIL_PORT', default=587)
+# EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
+# EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+# EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+# DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+
+# Email para recibir notificaciones de pedidos
+ADMIN_EMAIL = env('ADMIN_EMAIL', default='')
+
+# ============================================
+# CONFIGURACIÓN DE JAZZMIN (ADMIN MODERNO)
+# ============================================
+
+JAZZMIN_SETTINGS = {
+    # Título en la barra superior
+    "site_title": "Superventas Admin",
+    
+    # Título en la página de login
+    "site_header": "Superventas",
+    
+    # Marca en la barra superior
+    "site_brand": "Superventas",
+    
+    # Logo para usar en el login y barra superior (opcional)
+    # "site_logo": "images/logo.png",
+    
+    # Logo para el modo oscuro (opcional)
+    # "site_logo_dark": "images/logo-dark.png",
+    
+    # Bienvenida en la página de inicio
+    "welcome_sign": "Bienvenido al Panel de Administración de Superventas",
+    
+    # Copyright en el footer
+    "copyright": "Superventas © 2025",
+    
+    # Links en el menú superior derecho
+    "topmenu_links": [
+        {"name": "Inicio", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Ver Tienda", "url": "/", "new_window": True},
+        {"model": "auth.User"},
+    ],
+    
+    # Orden del menú lateral
+    "order_with_respect_to": ["ventas", "auth"],
+    
+    # Iconos personalizados para cada app y modelo
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "ventas.Pedido": "fas fa-shopping-cart",
+        "ventas.DetallePedido": "fas fa-list",
+        "ventas.Perfil": "fas fa-id-card",
+        "ventas.Favorito": "fas fa-heart",
+    },
+    
+    # Iconos por defecto
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    
+    # Temas de color disponibles
+    "theme": "cosmo",  # opciones: cerulean, cosmo, cyborg, darkly, flatly, journal, litera, lumen, lux, materia, minty, pulse, sandstone, simplex, slate, solar, spacelab, superhero, united, yeti
+    
+    # Modo oscuro
+    "dark_mode_theme": None,
+    
+    # Botón para cambiar tema
+    "show_ui_builder": False,
+    
+    # Cambiar entre modo claro/oscuro
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
+    
+    # Sidebar personalizado
+    "navigation_expanded": True,
+    
+    # Ocultar apps
+    "hide_apps": [],
+    
+    # Ocultar modelos
+    "hide_models": [],
+    
+    # Ordenar apps (personalizado)
+    "custom_links": {
+        "ventas": [{
+            "name": "Ver Pedidos Pendientes",
+            "url": "/admin/ventas/pedido/?estado__exact=pendiente",
+            "icon": "fas fa-clock",
+            "permissions": ["ventas.view_pedido"]
+        }]
+    },
+    
+    # Usar botones redondeados
+    "use_google_fonts_cdn": True,
+    "show_sidebar": True,
+    "language_chooser": False,
+}
+
+# Configuración adicional de la UI de Jazzmin
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-light",
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-light-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "cosmo",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-secondary",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    }
+}

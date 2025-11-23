@@ -5,11 +5,133 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from .models import Favorito
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.urls import reverse
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from .models import Favorito, Pedido, DetallePedido
 from .forms import UserUpdateForm, PerfilUpdateForm, CambiarPasswordForm
 import re
+import uuid
+from datetime import datetime
+import json
+import mercadopago
+import stripe
 
 # Create your views here.
+
+def enviar_email_pedido(pedido):
+    """Función para enviar email de confirmación de pedido"""
+    try:
+        # Email al cliente
+        subject_cliente = f'Confirmación de Pedido #{pedido.numero_pedido}'
+        
+        # Crear contexto para el template
+        context = {
+            'pedido': pedido,
+            'items': pedido.items.all(),
+            'usuario': pedido.user,
+        }
+        
+        # Mensaje para el cliente
+        mensaje_cliente = f"""
+        ¡Hola {pedido.user.get_full_name() or pedido.user.username}!
+        
+        Tu pedido #{pedido.numero_pedido} ha sido recibido exitosamente.
+        
+        DETALLES DEL PEDIDO:
+        ---------------------
+        Número de Pedido: {pedido.numero_pedido}
+        Fecha: {pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M')}
+        Total: ${pedido.total}
+        Método de Pago: {pedido.get_metodo_pago_display()}
+        Estado de Pago: {'✅ Pagado' if pedido.estado_pago else '⏳ Pendiente'}
+        
+        PRODUCTOS:
+        ---------------------
+        """
+        
+        for item in pedido.items.all():
+            mensaje_cliente += f"\n- {item.producto_nombre} x{item.cantidad} - ${item.precio_unitario}"
+            if item.descuento > 0:
+                mensaje_cliente += f" ({item.descuento}% descuento)"
+        
+        mensaje_cliente += f"""
+        
+        DIRECCIÓN DE ENVÍO:
+        ---------------------
+        {pedido.direccion_envio}
+        {pedido.ciudad}, {pedido.codigo_postal}
+        Teléfono: {pedido.telefono}
+        
+        Te notificaremos cuando tu pedido sea enviado.
+        
+        ¡Gracias por tu compra!
+        Superventas
+        """
+        
+        # Enviar email al cliente
+        send_mail(
+            subject_cliente,
+            mensaje_cliente,
+            settings.DEFAULT_FROM_EMAIL,
+            [pedido.user.email],
+            fail_silently=True,
+        )
+        
+        # Email al administrador si está configurado
+        if settings.ADMIN_EMAIL:
+            subject_admin = f'Nuevo Pedido #{pedido.numero_pedido} - {pedido.user.username}'
+            
+            mensaje_admin = f"""
+            NUEVO PEDIDO RECIBIDO
+            =====================
+            
+            Número de Pedido: {pedido.numero_pedido}
+            Cliente: {pedido.user.get_full_name() or pedido.user.username}
+            Email: {pedido.user.email}
+            Teléfono: {pedido.telefono}
+            Fecha: {pedido.fecha_pedido.strftime('%d/%m/%Y %H:%M')}
+            
+            TOTAL: ${pedido.total}
+            Método de Pago: {pedido.get_metodo_pago_display()}
+            Estado de Pago: {'PAGADO' if pedido.estado_pago else 'PENDIENTE'}
+            
+            PRODUCTOS:
+            ---------------------
+            """
+            
+            for item in pedido.items.all():
+                mensaje_admin += f"\n- {item.producto_nombre} x{item.cantidad} - ${item.precio_unitario}"
+                if item.descuento > 0:
+                    mensaje_admin += f" ({item.descuento}% descuento)"
+            
+            mensaje_admin += f"""
+            
+            DIRECCIÓN DE ENVÍO:
+            ---------------------
+            {pedido.direccion_envio}
+            {pedido.ciudad}, {pedido.codigo_postal}
+            
+            NOTAS DEL CLIENTE:
+            {pedido.notas or 'Sin notas'}
+            """
+            
+            send_mail(
+                subject_admin,
+                mensaje_admin,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.ADMIN_EMAIL],
+                fail_silently=True,
+            )
+        
+        return True
+    except Exception as e:
+        print(f"Error enviando email de pedido: {str(e)}")
+        return False
+
 
 def ordenar_productos(productos, orden):
     """Función helper para ordenar productos"""
@@ -1254,3 +1376,609 @@ def lista_favoritos(request):
     }
     
     return render(request, 'ventas/favoritos.html', context)
+
+
+@login_required
+def checkout(request):
+    """Vista para la página de checkout/pago"""
+    perfil = request.user.perfil
+    
+    # Validar que el usuario tenga dirección completa
+    if not perfil.direccion or not perfil.ciudad or not perfil.codigo_postal or not perfil.telefono:
+        messages.warning(request, 'Por favor completa tu información de perfil antes de realizar un pedido')
+        return redirect('ventas:editar_perfil')
+    
+    context = {
+        'perfil': perfil,
+        'metodos_pago': Pedido.METODO_PAGO_CHOICES
+    }
+    
+    return render(request, 'ventas/checkout.html', context)
+
+
+@login_required
+@require_POST
+def finalizar_compra(request):
+    """Vista para finalizar la compra y crear el pedido"""
+    try:
+        import json
+        
+        # Obtener datos del carrito desde el POST
+        carrito_json = request.POST.get('carrito')
+        if not carrito_json:
+            return JsonResponse({'status': 'error', 'message': 'El carrito está vacío'}, status=400)
+        
+        carrito = json.loads(carrito_json)
+        
+        if not carrito:
+            return JsonResponse({'status': 'error', 'message': 'El carrito está vacío'}, status=400)
+        
+        # Obtener método de pago y notas
+        metodo_pago = request.POST.get('metodo_pago', 'efectivo')
+        notas = request.POST.get('notas', '')
+        
+        # Obtener datos de envío del formulario (independientes del perfil)
+        datos_envio_json = request.POST.get('datos_envio')
+        if datos_envio_json:
+            datos_envio = json.loads(datos_envio_json)
+            direccion = datos_envio.get('direccion')
+            ciudad = datos_envio.get('ciudad')
+            codigo_postal = datos_envio.get('codigo_postal')
+            telefono = datos_envio.get('telefono')
+        else:
+            # Fallback a datos del perfil si no se envían datos de envío
+            perfil = request.user.perfil
+            direccion = perfil.direccion
+            ciudad = perfil.ciudad
+            codigo_postal = perfil.codigo_postal
+            telefono = perfil.telefono
+        
+        # Validar que haya dirección completa
+        if not direccion or not ciudad or not codigo_postal or not telefono:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Por favor completa todos los datos de envío antes de realizar el pedido'
+            }, status=400)
+        
+        # Calcular el total
+        total = 0
+        for item in carrito:
+            precio = float(item['precio'])
+            descuento = int(item.get('descuento', 0))
+            cantidad = int(item['cantidad'])
+            
+            if descuento > 0:
+                precio_final = precio * (1 - descuento / 100)
+            else:
+                precio_final = precio
+            
+            total += precio_final * cantidad
+        
+        # Generar número de pedido único
+        numero_pedido = f"PED-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
+        
+        # Crear el pedido con los datos de envío del formulario
+        pedido = Pedido.objects.create(
+            user=request.user,
+            numero_pedido=numero_pedido,
+            total=round(total, 2),
+            metodo_pago=metodo_pago,
+            estado_pago=False,  # El pago está pendiente por defecto
+            direccion_envio=direccion,
+            ciudad=ciudad,
+            codigo_postal=codigo_postal,
+            telefono=telefono,
+            estado='pendiente',
+            notas=notas
+        )
+        
+        # Crear los detalles del pedido
+        for item in carrito:
+            precio = float(item['precio'])
+            descuento = int(item.get('descuento', 0))
+            cantidad = int(item['cantidad'])
+            
+            if descuento > 0:
+                precio_final = precio * (1 - descuento / 100)
+            else:
+                precio_final = precio
+            
+            subtotal = precio_final * cantidad
+            
+            DetallePedido.objects.create(
+                pedido=pedido,
+                producto_id=int(item.get('id', 0)),
+                producto_nombre=item['nombre'],
+                producto_imagen=item['imagen'],
+                producto_categoria=item.get('categoria', 'general'),
+                precio_unitario=precio,
+                descuento=descuento,
+                cantidad=cantidad,
+                subtotal=round(subtotal, 2)
+            )
+        
+        # Enviar email de confirmación
+        enviar_email_pedido(pedido)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': f'¡Pedido realizado con éxito! Número de pedido: {numero_pedido}',
+            'numero_pedido': numero_pedido,
+            'pedido_id': pedido.id
+        })
+    
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al procesar el pedido: {str(e)}'}, status=500)
+
+
+@login_required
+def mis_pedidos(request):
+    """Vista para mostrar todos los pedidos del usuario"""
+    # Excluir pedidos cancelados por defecto
+    pedidos = Pedido.objects.filter(user=request.user).exclude(estado='cancelado').prefetch_related('items')
+    
+    # Agregar información adicional a cada pedido
+    for pedido in pedidos:
+        pedido.total_items = sum(item.cantidad for item in pedido.items.all())
+    
+    context = {
+        'pedidos': pedidos,
+        'total_pedidos': pedidos.count()
+    }
+    
+    return render(request, 'ventas/mis_pedidos.html', context)
+
+
+@login_required
+def detalle_pedido(request, pedido_id):
+    """Vista para mostrar el detalle de un pedido específico"""
+    try:
+        pedido = Pedido.objects.get(id=pedido_id, user=request.user)
+        items = pedido.items.all()
+        
+        # Calcular totales
+        subtotal = sum(item.subtotal for item in items)
+        total_items = sum(item.cantidad for item in items)
+        
+        context = {
+            'pedido': pedido,
+            'items': items,
+            'subtotal': subtotal,
+            'total_items': total_items
+        }
+        
+        return render(request, 'ventas/detalle_pedido.html', context)
+    
+    except Pedido.DoesNotExist:
+        messages.error(request, 'Pedido no encontrado')
+        return redirect('ventas:mis_pedidos')
+
+
+@login_required
+@require_POST
+def cancelar_pedido(request, pedido_id):
+    """Vista para cancelar un pedido"""
+    try:
+        pedido = Pedido.objects.get(id=pedido_id, user=request.user)
+        
+        # Solo se pueden cancelar pedidos pendientes o en procesamiento
+        if pedido.estado not in ['pendiente', 'procesando']:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'No puedes cancelar un pedido que ya está {pedido.estado}'
+            }, status=400)
+        
+        # Cambiar estado a cancelado
+        pedido.estado = 'cancelado'
+        pedido.save()
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': f'El pedido {pedido.numero_pedido} ha sido cancelado exitosamente'
+        })
+    
+    except Pedido.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Pedido no encontrado'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Error al cancelar el pedido: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_POST
+def crear_preferencia_mercadopago(request):
+    """Vista para crear una preferencia de pago en Mercado Pago"""
+    try:
+        # Verificar que las credenciales de Mercado Pago estén configuradas
+        if not settings.MERCADOPAGO_ACCESS_TOKEN or settings.MERCADOPAGO_ACCESS_TOKEN == '':
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Mercado Pago no está configurado. Por favor contacta al administrador.'
+            }, status=500)
+        
+        # Obtener datos del carrito y datos de envío
+        carrito_json = request.POST.get('carrito')
+        if not carrito_json:
+            return JsonResponse({'status': 'error', 'message': 'El carrito está vacío'}, status=400)
+        
+        carrito = json.loads(carrito_json)
+        
+        if not carrito:
+            return JsonResponse({'status': 'error', 'message': 'El carrito está vacío'}, status=400)
+        
+        # Obtener datos de envío del formulario o del perfil
+        datos_envio_json = request.POST.get('datos_envio')
+        perfil = request.user.perfil
+        
+        if datos_envio_json:
+            datos_envio = json.loads(datos_envio_json)
+            direccion = datos_envio.get('direccion') or perfil.direccion
+            ciudad = datos_envio.get('ciudad') or perfil.ciudad
+            codigo_postal = datos_envio.get('codigo_postal') or perfil.codigo_postal
+            telefono = datos_envio.get('telefono') or perfil.telefono
+        else:
+            direccion = perfil.direccion
+            ciudad = perfil.ciudad
+            codigo_postal = perfil.codigo_postal
+            telefono = perfil.telefono
+        
+        # Validar que haya información completa
+        if not direccion or not ciudad or not codigo_postal or not telefono:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Por favor completa todos los datos de envío antes de realizar el pedido'
+            }, status=400)
+        
+        # Inicializar SDK de Mercado Pago
+        sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+        
+        # Crear items para Mercado Pago
+        items = []
+        total = 0
+        
+        for item in carrito:
+            precio = float(item['precio'])
+            descuento = int(item.get('descuento', 0))
+            cantidad = int(item['cantidad'])
+            
+            if descuento > 0:
+                precio_final = precio * (1 - descuento / 100)
+            else:
+                precio_final = precio
+            
+            items.append({
+                "title": item['nombre'],
+                "quantity": cantidad,
+                "unit_price": float(round(precio_final, 2)),
+                "currency_id": "UYU"  # Peso uruguayo
+            })
+            
+            total += precio_final * cantidad
+        
+        # Crear preferencia de pago con los datos de envío del formulario
+        preference_data = {
+            "items": items,
+            "payer": {
+                "name": request.user.first_name or request.user.username,
+                "email": request.user.email or f"{request.user.username}@example.com",
+                "phone": {
+                    "number": str(telefono)
+                },
+                "address": {
+                    "street_name": str(direccion)[:256],
+                    "zip_code": str(codigo_postal)
+                }
+            },
+            "back_urls": {
+                "success": request.build_absolute_uri(reverse('ventas:pago_exitoso')),
+                "failure": request.build_absolute_uri(reverse('ventas:pago_fallido')),
+                "pending": request.build_absolute_uri(reverse('ventas:pago_pendiente'))
+            },
+            "statement_descriptor": "SUPERVENTAS",
+            "external_reference": f"{request.user.id}_{uuid.uuid4().hex[:8]}"
+        }
+        
+        # En desarrollo local (localhost), no incluir notification_url
+        # porque Mercado Pago requiere una URL pública accesible
+        # En producción, descomentar la siguiente línea:
+        # preference_data["notification_url"] = request.build_absolute_uri(reverse('ventas:webhook_mercadopago'))
+        
+        print("=== Creando preferencia de Mercado Pago ===")
+        print(f"Items: {len(items)}")
+        print(f"Total: ${total}")
+        print(f"Success URL: {preference_data['back_urls']['success']}")
+        print(f"Failure URL: {preference_data['back_urls']['failure']}")
+        print(f"Pending URL: {preference_data['back_urls']['pending']}")
+        
+        # Crear la preferencia con URLs corregidas
+        preference_response = sdk.preference().create(preference_data)
+        
+        print(f"Respuesta de MP: {preference_response}")
+        
+        preference = preference_response.get("response")
+        status_code = preference_response.get("status")
+        
+        if status_code == 201 and preference:
+            return JsonResponse({
+                'status': 'success',
+                'preference_id': preference.get('id'),
+                'init_point': preference.get('init_point'),
+                'sandbox_init_point': preference.get('sandbox_init_point')
+            })
+        else:
+            error_message = preference_response.get('response', {}).get('message', 'Error desconocido')
+            print(f"Error de MP: {error_message}")
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Error al crear la preferencia de pago: {error_message}'
+            }, status=500)
+    
+    except json.JSONDecodeError as e:
+        print(f"Error JSON: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': 'Error al procesar el carrito'}, status=400)
+    except json.JSONDecodeError as e:
+        print(f"Error JSON: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': 'Error al procesar el carrito'}, status=400)
+    except Exception as e:
+        print(f"Error en crear_preferencia_mercadopago: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'status': 'error', 'message': f'Error: {str(e)}'}, status=500)
+
+
+@login_required
+def pago_exitoso(request):
+    """Vista para cuando el pago es exitoso"""
+    # Obtener datos de Mercado Pago
+    payment_id = request.GET.get('payment_id')
+    status = request.GET.get('status')
+    external_reference = request.GET.get('external_reference')
+    
+    if status == 'approved' and external_reference:
+        # Aquí deberías crear el pedido con los datos del carrito guardados
+        messages.success(request, f'¡Pago exitoso! ID de pago: {payment_id}')
+    else:
+        messages.warning(request, 'El pago está siendo procesado')
+    
+    return redirect('ventas:mis_pedidos')
+
+
+@login_required
+def test_mercadopago_config(request):
+    """Vista para probar la configuración de Mercado Pago"""
+    config_status = {
+        'access_token_configurado': bool(settings.MERCADOPAGO_ACCESS_TOKEN),
+        'public_key_configurado': bool(settings.MERCADOPAGO_PUBLIC_KEY),
+        'access_token_preview': settings.MERCADOPAGO_ACCESS_TOKEN[:20] + '...' if settings.MERCADOPAGO_ACCESS_TOKEN else 'NO CONFIGURADO',
+        'public_key_preview': settings.MERCADOPAGO_PUBLIC_KEY[:20] + '...' if settings.MERCADOPAGO_PUBLIC_KEY else 'NO CONFIGURADO',
+    }
+    
+    # Intentar inicializar SDK
+    try:
+        if settings.MERCADOPAGO_ACCESS_TOKEN:
+            sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+            config_status['sdk_inicializado'] = True
+            config_status['mensaje'] = '✅ Mercado Pago está correctamente configurado'
+        else:
+            config_status['sdk_inicializado'] = False
+            config_status['mensaje'] = '❌ Falta configurar ACCESS_TOKEN'
+    except Exception as e:
+        config_status['sdk_inicializado'] = False
+        config_status['mensaje'] = f'❌ Error: {str(e)}'
+    
+    return JsonResponse(config_status)
+
+
+@login_required
+def pago_fallido(request):
+    """Vista para cuando el pago falla"""
+    messages.error(request, 'El pago no pudo ser procesado. Por favor intenta nuevamente.')
+    return redirect('ventas:carrito')
+
+
+@login_required
+def pago_pendiente(request):
+    """Vista para cuando el pago está pendiente"""
+    messages.info(request, 'Tu pago está pendiente de confirmación. Te notificaremos cuando se complete.')
+    return redirect('ventas:mis_pedidos')
+
+
+@csrf_exempt
+@require_POST
+def webhook_mercadopago(request):
+    """Webhook para recibir notificaciones de Mercado Pago"""
+    try:
+        data = json.loads(request.body)
+        
+        # Mercado Pago envía notificaciones sobre pagos
+        if data.get('type') == 'payment':
+            payment_id = data['data']['id']
+            
+            # Inicializar SDK
+            sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+            
+            # Obtener información del pago
+            payment_info = sdk.payment().get(payment_id)
+            payment = payment_info['response']
+            
+            if payment['status'] == 'approved':
+                # Obtener external_reference para identificar el pedido
+                external_reference = payment.get('external_reference')
+                
+                if external_reference:
+                    # Aquí deberías actualizar el estado del pedido
+                    # Por ahora solo logueamos
+                    print(f"Pago aprobado: {payment_id}, referencia: {external_reference}")
+            
+        return JsonResponse({'status': 'ok'})
+    
+    except Exception as e:
+        print(f"Error en webhook_mercadopago: {str(e)}")
+        return JsonResponse({'status': 'error'}, status=400)
+
+
+# ============================================
+# VISTAS PARA STRIPE (Pago con Tarjeta)
+# ============================================
+
+@login_required
+@require_POST
+def crear_checkout_stripe(request):
+    """Crear sesión de checkout de Stripe"""
+    try:
+        # Configurar Stripe
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        
+        if not stripe.api_key:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Stripe no está configurado. Por favor contacta al administrador.'
+            })
+        
+        # Obtener datos del carrito, método de pago y datos de envío
+        carrito_json = request.POST.get('carrito', '[]')
+        carrito = json.loads(carrito_json)
+        metodo_pago = request.POST.get('metodo_pago', 'stripe')
+        datos_envio_json = request.POST.get('datos_envio', '{}')
+        
+        if not carrito:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'El carrito está vacío'
+            })
+        
+        # Crear items para Stripe
+        line_items = []
+        for item in carrito:
+            # Stripe requiere el precio en centavos
+            precio_centavos = int(float(item['precioFinal']) * 100)
+            
+            line_items.append({
+                'price_data': {
+                    'currency': 'uyu',  # Pesos uruguayos
+                    'product_data': {
+                        'name': item['nombre'],
+                        'images': [request.build_absolute_uri(item['imagen'])],
+                    },
+                    'unit_amount': precio_centavos,
+                },
+                'quantity': int(item['cantidad']),
+            })
+        
+        # Crear sesión de checkout
+        # Nota: Google Pay se habilita automáticamente con 'card' cuando el navegador lo soporta
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card', 'link'],
+            line_items=line_items,
+            mode='payment',
+            success_url=request.build_absolute_uri(reverse('ventas:pago_exitoso_stripe')) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=request.build_absolute_uri(reverse('ventas:checkout')),
+            customer_email=request.user.email,
+            metadata={
+                'user_id': request.user.id,
+                'carrito': carrito_json,
+                'metodo_pago': metodo_pago,
+                'datos_envio': datos_envio_json,
+            }
+        )
+        
+        return JsonResponse({
+            'status': 'success',
+            'checkout_url': checkout_session.url,
+            'session_id': checkout_session.id
+        })
+    
+    except Exception as e:
+        print(f"Error creando checkout de Stripe: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Error al procesar el pago: {str(e)}'
+        })
+
+
+@login_required
+def pago_exitoso_stripe(request):
+    """Vista cuando el pago con Stripe es exitoso"""
+    session_id = request.GET.get('session_id')
+    
+    if not session_id:
+        messages.error(request, 'No se pudo verificar el pago')
+        return redirect('ventas:carrito')
+    
+    try:
+        # Configurar Stripe
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        
+        # Obtener la sesión de checkout
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status == 'paid':
+            # Recuperar el carrito, método de pago y datos de envío del metadata
+            carrito_json = session.metadata.get('carrito')
+            carrito = json.loads(carrito_json)
+            metodo_pago = session.metadata.get('metodo_pago', 'tarjeta')
+            datos_envio_json = session.metadata.get('datos_envio', '{}')
+            datos_envio = json.loads(datos_envio_json)
+            
+            # Usar datos de envío del formulario o fallback al perfil
+            perfil = request.user.perfil
+            direccion = datos_envio.get('direccion') or perfil.direccion or 'No especificada'
+            ciudad = datos_envio.get('ciudad') or perfil.ciudad or 'No especificada'
+            codigo_postal = datos_envio.get('codigo_postal') or perfil.codigo_postal or '00000'
+            telefono = datos_envio.get('telefono') or perfil.telefono or 'No especificado'
+            
+            total = sum(float(item['precioFinal']) * int(item['cantidad']) for item in carrito)
+            
+            pedido = Pedido.objects.create(
+                usuario=request.user,
+                direccion_envio=direccion,
+                ciudad=ciudad,
+                codigo_postal=codigo_postal,
+                telefono=telefono,
+                total=total,
+                metodo_pago=metodo_pago,
+                estado_pago=True,  # Ya está pagado
+                estado='procesando',
+                notas=f'Pago con Stripe - Session ID: {session_id}'
+            )
+            
+            # Crear detalles del pedido
+            for item in carrito:
+                DetallePedido.objects.create(
+                    pedido=pedido,
+                    producto_nombre=item['nombre'],
+                    producto_imagen=item['imagen'],
+                    producto_categoria=item['categoria'],
+                    cantidad=int(item['cantidad']),
+                    precio_unitario=float(item['precio']),
+                    descuento=int(item.get('descuento', 0))
+                )
+            
+            # Enviar email de confirmación
+            enviar_email_pedido(pedido)
+            
+            messages.success(request, f'¡Pago exitoso! Tu pedido #{pedido.numero_pedido} ha sido confirmado.')
+            return redirect('ventas:detalle_pedido', pedido_id=pedido.id)
+        else:
+            messages.warning(request, 'El pago aún está siendo procesado.')
+            return redirect('ventas:mis_pedidos')
+            
+    except Exception as e:
+        print(f"Error verificando pago de Stripe: {str(e)}")
+        messages.error(request, 'Hubo un error al verificar el pago')
+        return redirect('ventas:carrito')
+
+
+def test_stripe_config(request):
+    """Verificar si Stripe está configurado correctamente"""
+    configurado = bool(settings.STRIPE_PUBLIC_KEY and settings.STRIPE_SECRET_KEY)
+    
+    return JsonResponse({
+        'stripe_configurado': configurado,
+        'public_key': settings.STRIPE_PUBLIC_KEY if configurado else None
+    })

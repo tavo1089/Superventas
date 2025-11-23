@@ -50,3 +50,66 @@ class Favorito(models.Model):
         verbose_name_plural = 'Favoritos'
         unique_together = ['user', 'producto_id', 'producto_categoria']
         ordering = ['-fecha_agregado']
+
+
+class Pedido(models.Model):
+    """Modelo para gestionar los pedidos de los usuarios"""
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('procesando', 'Procesando'),
+        ('enviado', 'Enviado'),
+        ('entregado', 'Entregado'),
+        ('cancelado', 'Cancelado'),
+    ]
+    
+    METODO_PAGO_CHOICES = [
+        ('transferencia', 'Transferencia Bancaria'),
+        ('efectivo', 'Pago Contra Entrega'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pedidos')
+    numero_pedido = models.CharField(max_length=50, unique=True)
+    fecha_pedido = models.DateTimeField(auto_now_add=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # Información de pago
+    metodo_pago = models.CharField(max_length=20, choices=METODO_PAGO_CHOICES, default='efectivo')
+    estado_pago = models.BooleanField(default=False)  # False = pendiente, True = pagado
+    
+    # Información de envío
+    direccion_envio = models.TextField()
+    ciudad = models.CharField(max_length=100)
+    codigo_postal = models.CharField(max_length=10)
+    telefono = models.CharField(max_length=20)
+    
+    # Notas adicionales
+    notas = models.TextField(blank=True, null=True)
+    
+    def __str__(self):
+        return f'Pedido {self.numero_pedido} - {self.user.username}'
+    
+    class Meta:
+        verbose_name = 'Pedido'
+        verbose_name_plural = 'Pedidos'
+        ordering = ['-fecha_pedido']
+
+
+class DetallePedido(models.Model):
+    """Modelo para los items individuales de cada pedido"""
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='items')
+    producto_id = models.IntegerField()
+    producto_nombre = models.CharField(max_length=255)
+    producto_imagen = models.URLField()
+    producto_categoria = models.CharField(max_length=100)
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    descuento = models.IntegerField(default=0)
+    cantidad = models.IntegerField()
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f'{self.producto_nombre} x{self.cantidad} - Pedido {self.pedido.numero_pedido}'
+    
+    class Meta:
+        verbose_name = 'Detalle de Pedido'
+        verbose_name_plural = 'Detalles de Pedidos'

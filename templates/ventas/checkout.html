@@ -1,0 +1,595 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Finalizar Compra - Superventas{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold text-success">
+                <i class="bi bi-credit-card"></i> Finalizar Compra
+            </h1>
+            <p class="text-muted">Revisa tu información y selecciona tu método de pago</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna izquierda: Información y métodos de pago -->
+        <div class="col-lg-7">
+            <!-- Información de envío -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-geo-alt"></i> Información de Envío
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="nombre_completo" class="form-label"><strong><i class="bi bi-person"></i> Nombre Completo:</strong></label>
+                            <input type="text" class="form-control" id="nombre_completo" value="{{ user.get_full_name|default:user.username }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="telefono_envio" class="form-label"><strong><i class="bi bi-telephone"></i> Teléfono:</strong></label>
+                            <input type="text" class="form-control" id="telefono_envio" value="{{ perfil.telefono }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email_envio" class="form-label"><strong><i class="bi bi-envelope"></i> Email:</strong></label>
+                            <input type="email" class="form-control" id="email_envio" value="{{ user.email }}" required>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="direccion_envio" class="form-label"><strong><i class="bi bi-house"></i> Dirección:</strong></label>
+                            <input type="text" class="form-control" id="direccion_envio" value="{{ perfil.direccion }}" placeholder="Calle, número, apartamento..." required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="ciudad_envio" class="form-label"><strong><i class="bi bi-geo"></i> Ciudad:</strong></label>
+                            <input type="text" class="form-control" id="ciudad_envio" value="{{ perfil.ciudad }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="codigo_postal_envio" class="form-label"><strong><i class="bi bi-mailbox"></i> Código Postal:</strong></label>
+                            <input type="text" class="form-control" id="codigo_postal_envio" value="{{ perfil.codigo_postal }}" required>
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> <small>Puedes modificar la dirección de envío sin afectar tu información del perfil.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Métodos de pago -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-wallet2"></i> Método de Pago
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="metodos-pago">
+                        <!-- Tarjeta de Crédito/Débito (Stripe) -->
+                        <div class="metodo-pago-item" onclick="seleccionarMetodoPago('stripe')">
+                            <input type="radio" name="metodo_pago" id="metodo_stripe" value="stripe" checked>
+                            <label for="metodo_stripe" class="w-100">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bi bi-credit-card-2-front fs-2 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Tarjeta de Crédito o Débito</strong>
+                                        <small class="d-block text-muted">
+                                            Visa, Mastercard, American Express - Pago seguro
+                                        </small>
+                                        <span class="badge bg-success">Pago Directo</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Google Pay (Stripe) -->
+                        <div class="metodo-pago-item" onclick="seleccionarMetodoPago('google_pay')">
+                            <input type="radio" name="metodo_pago" id="metodo_google_pay" value="google_pay">
+                            <label for="metodo_google_pay" class="w-100">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <img src="https://www.gstatic.com/instantbuy/svg/dark_gpay.svg" alt="Google Pay" style="height: 40px;">
+                                    </div>
+                                    <div>
+                                        <strong>Google Pay</strong>
+                                        <small class="d-block text-muted">
+                                            Pago rápido con un clic desde tu cuenta de Google
+                                        </small>
+                                        <span class="badge bg-success">Pago Express</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <!-- Mercado Pago (Pago Online) -->
+                        <div class="metodo-pago-item" onclick="seleccionarMetodoPago('mercadopago')">
+                            <input type="radio" name="metodo_pago" id="metodo_mercadopago" value="mercadopago">
+                            <label for="metodo_mercadopago" class="w-100">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bi bi-credit-card fs-2" style="color: #009ee3;"></i>
+                                    </div>
+                                    <div>
+                                        <strong>Mercado Pago</strong>
+                                        <small class="d-block text-muted">
+                                            Pago seguro con tarjeta, débito o saldo de Mercado Pago
+                                        </small>
+                                        <span class="badge bg-primary">Pago en Línea</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        {% for value, label in metodos_pago %}
+                        <div class="metodo-pago-item" onclick="seleccionarMetodoPago('{{ value }}')">
+                            <input type="radio" name="metodo_pago" id="metodo_{{ value }}" value="{{ value }}">
+                            <label for="metodo_{{ value }}" class="w-100">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if value == 'transferencia' %}
+                                            <i class="bi bi-bank fs-2 text-info"></i>
+                                        {% elif value == 'efectivo' %}
+                                            <i class="bi bi-cash-coin fs-2 text-success"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <strong>{{ label }}</strong>
+                                        <small class="d-block text-muted">
+                                            {% if value == 'efectivo' %}
+                                                Paga cuando recibas tu pedido
+                                            {% elif value == 'transferencia' %}
+                                                Transferencia a cuenta bancaria
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Alerta para Tarjeta (Stripe) -->
+                    <div id="info-stripe" class="alert alert-success mt-3">
+                        <h6><i class="bi bi-shield-check"></i> Pago Seguro con Tarjeta o Google Pay</h6>
+                        <p class="mb-1">✅ Acepta Visa, Mastercard, American Express</p>
+                        <p class="mb-1">✅ Pago rápido con Google Pay (un clic)</p>
+                        <p class="mb-1">✅ Procesamiento seguro y encriptado</p>
+                        <p class="mb-0">✅ Sin cargos adicionales</p>
+                    </div>
+                    
+                    <!-- Alerta para Mercado Pago -->
+                    <div id="info-mercadopago" class="alert alert-success mt-3" style="display: none;">
+                        <h6><i class="bi bi-shield-check"></i> Pago 100% Seguro con Mercado Pago</h6>
+                        <p class="mb-1">✅ Acepta todas las tarjetas de crédito y débito</p>
+                        <p class="mb-1">✅ Paga con saldo de Mercado Pago</p>
+                        <p class="mb-0">✅ Protección del comprador incluida</p>
+                    </div>
+
+                    <!-- Información adicional según método de pago -->
+                    <div id="info-transferencia" class="alert alert-info mt-3" style="display: none;">
+                        <h6><i class="bi bi-info-circle"></i> Datos Bancarios:</h6>
+                        <p class="mb-1"><strong>Banco:</strong> Santander</p>
+                        <p class="mb-1"><strong>Cuenta en Pesos:</strong> 89736</p>
+                        <p class="mb-1"><strong>Moneda:</strong> UYU</p>
+                        <p class="mb-1"><strong>Sucursal:</strong> 71 - Casa Central</p>
+                        <p class="mb-0"><strong>Transferencia de otros Bancos:</strong> 0071000000897396</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notas adicionales -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-sticky"></i> Notas Adicionales (Opcional)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <textarea id="notas" class="form-control" rows="3" 
+                              placeholder="Agrega instrucciones especiales para tu pedido..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Resumen del pedido -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-cart-check"></i> Resumen del Pedido
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Productos del carrito -->
+                    <div id="productos-resumen" class="mb-3">
+                        <!-- Se llenará con JavaScript -->
+                    </div>
+
+                    <hr>
+
+                    <!-- Totales -->
+                    <div class="mb-2 d-flex justify-content-between">
+                        <span>Subtotal:</span>
+                        <span id="subtotal-checkout">S/. 0.00</span>
+                    </div>
+                    <div class="mb-2 d-flex justify-content-between text-success">
+                        <span>Descuentos:</span>
+                        <span id="descuentos-checkout">-S/. 0.00</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between">
+                        <span>Envío:</span>
+                        <span class="text-success">GRATIS</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong class="fs-5">Total a Pagar:</strong>
+                        <strong class="fs-4 text-success" id="total-checkout">S/. 0.00</strong>
+                    </div>
+
+                    <button id="btn-confirmar-pedido" class="btn btn-success btn-lg w-100 mb-2" onclick="confirmarPedido()">
+                        <i class="bi bi-check-circle"></i> Confirmar Pedido
+                    </button>
+
+                    <a href="{% url 'ventas:carrito' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-left"></i> Volver al Carrito
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.metodo-pago-item {
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.metodo-pago-item:hover {
+    border-color: var(--color-verde-principal);
+    background-color: #f8f9fa;
+}
+
+.metodo-pago-item input[type="radio"] {
+    cursor: pointer;
+}
+
+.metodo-pago-item input[type="radio"]:checked + label {
+    color: var(--color-verde-principal);
+    font-weight: 600;
+}
+
+.metodo-pago-item:has(input[type="radio"]:checked) {
+    border-color: var(--color-verde-principal);
+    background-color: #f0f8f5;
+    border-width: 3px;
+}
+
+.producto-resumen-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.producto-resumen-item:last-child {
+    border-bottom: none;
+}
+
+.producto-resumen-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-right: 15px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    cargarResumenCheckout();
+    // Verificar configuración de Mercado Pago al cargar la página
+    verificarConfigMercadoPago();
+});
+
+function verificarConfigMercadoPago() {
+    fetch('/test-mp-config/')
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (!data.access_token_configurado) {
+            console.warn('⚠️ Mercado Pago no está configurado');
+            // Deshabilitar la opción de Mercado Pago si no está configurado
+            var radioMP = document.getElementById('metodo_mercadopago');
+            if (radioMP) {
+                radioMP.disabled = true;
+                var labelMP = radioMP.closest('.metodo-pago-item');
+                if (labelMP) {
+                    labelMP.style.opacity = '0.5';
+                    labelMP.style.cursor = 'not-allowed';
+                    var badge = labelMP.querySelector('.badge');
+                    if (badge) {
+                        badge.textContent = 'No Configurado';
+                        badge.classList.remove('bg-primary');
+                        badge.classList.add('bg-secondary');
+                    }
+                }
+            }
+        } else {
+            console.log('✅ Mercado Pago configurado correctamente');
+        }
+    })
+    .catch(function(error) {
+        console.warn('No se pudo verificar la configuración de Mercado Pago:', error);
+    });
+}
+
+function cargarResumenCheckout() {
+    console.log('=== cargarResumenCheckout ===');
+    const carrito = obtenerCarrito();
+    
+    if (carrito.length === 0) {
+        window.location.href = '{% url "ventas:carrito" %}';
+        return;
+    }
+    
+    const productosResumen = document.getElementById('productos-resumen');
+    productosResumen.innerHTML = '';
+    
+    let subtotal = 0;
+    let totalDescuentos = 0;
+    
+    carrito.forEach(function(producto) {
+        const precioOriginal = parseFloat(producto.precio) * parseInt(producto.cantidad);
+        const precioFinal = parseFloat(producto.precioFinal) * parseInt(producto.cantidad);
+        subtotal += precioOriginal;
+        totalDescuentos += (precioOriginal - precioFinal);
+        
+        const item = document.createElement('div');
+        item.className = 'producto-resumen-item';
+        item.innerHTML = '<img src="' + producto.imagen + '" alt="' + producto.nombre + '" class="producto-resumen-img">' +
+            '<div class="flex-grow-1">' +
+                '<h6 class="mb-1 small">' + producto.nombre + '</h6>' +
+                '<small class="text-muted">Cantidad: ' + producto.cantidad + '</small>' +
+            '</div>' +
+            '<div class="text-end">' +
+                '<strong>S/. ' + precioFinal.toFixed(2) + '</strong>' +
+            '</div>';
+        
+        productosResumen.appendChild(item);
+    });
+    
+    const total = subtotal - totalDescuentos;
+    
+    document.getElementById('subtotal-checkout').textContent = 'S/. ' + subtotal.toFixed(2);
+    document.getElementById('descuentos-checkout').textContent = '-S/. ' + totalDescuentos.toFixed(2);
+    document.getElementById('total-checkout').textContent = 'S/. ' + total.toFixed(2);
+}
+
+function seleccionarMetodoPago(metodo) {
+    console.log('=== seleccionarMetodoPago:', metodo, '===');
+    
+    // Marcar el radio button
+    document.getElementById('metodo_' + metodo).checked = true;
+    
+    // Ocultar todas las info boxes
+    document.getElementById('info-stripe').style.display = 'none';
+    document.getElementById('info-mercadopago').style.display = 'none';
+    document.getElementById('info-transferencia').style.display = 'none';
+    
+    // Mostrar info box correspondiente
+    if (metodo === 'stripe' || metodo === 'google_pay') {
+        document.getElementById('info-stripe').style.display = 'block';
+    } else if (metodo === 'mercadopago') {
+        document.getElementById('info-mercadopago').style.display = 'block';
+    } else if (metodo === 'transferencia') {
+        document.getElementById('info-transferencia').style.display = 'block';
+    }
+}
+
+function confirmarPedido() {
+    console.log('=== confirmarPedido llamada ===');
+    
+    const carrito = obtenerCarrito();
+    
+    if (carrito.length === 0) {
+        mostrarNotificacion('Tu carrito está vacío', 'error');
+        return;
+    }
+    
+    // Obtener método de pago seleccionado
+    const metodoPagoSeleccionado = document.querySelector('input[name="metodo_pago"]:checked');
+    if (!metodoPagoSeleccionado) {
+        mostrarNotificacion('Por favor selecciona un método de pago', 'warning');
+        return;
+    }
+    
+    const metodoPago = metodoPagoSeleccionado.value;
+    const notas = document.getElementById('notas').value;
+    
+    // Obtener datos de envío
+    const datosEnvio = {
+        nombre_completo: document.getElementById('nombre_completo').value,
+        telefono: document.getElementById('telefono_envio').value,
+        email: document.getElementById('email_envio').value,
+        direccion: document.getElementById('direccion_envio').value,
+        ciudad: document.getElementById('ciudad_envio').value,
+        codigo_postal: document.getElementById('codigo_postal_envio').value
+    };
+    
+    // Validar datos de envío
+    if (!datosEnvio.nombre_completo || !datosEnvio.telefono || !datosEnvio.direccion || !datosEnvio.ciudad) {
+        mostrarNotificacion('Por favor completa todos los datos de envío', 'warning');
+        return;
+    }
+    
+    // Deshabilitar botón
+    const btn = document.getElementById('btn-confirmar-pedido');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
+    
+    // Obtener token CSRF
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    var csrftoken = getCookie('csrftoken');
+    
+    // Si es Stripe (pago directo con tarjeta o Google Pay), crear sesión de checkout
+    if (metodoPago === 'stripe' || metodoPago === 'google_pay') {
+        fetch('{% url "ventas:crear_checkout_stripe" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: 'carrito=' + encodeURIComponent(JSON.stringify(carrito)) + 
+                  '&metodo_pago=' + encodeURIComponent(metodoPago) +
+                  '&datos_envio=' + encodeURIComponent(JSON.stringify(datosEnvio))
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            console.log('Respuesta de Stripe:', data);
+            
+            if (data.status === 'success') {
+                mostrarNotificacion('Redirigiendo a pago seguro...', 'info');
+                
+                // Redirigir a Stripe Checkout
+                setTimeout(function() {
+                    window.location.href = data.checkout_url;
+                }, 1000);
+            } else {
+                var mensaje = data.message || 'Error al procesar el pago';
+                mostrarNotificacion(mensaje, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Confirmar Pedido';
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            mostrarNotificacion('Error al conectar con el procesador de pagos', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> Confirmar Pedido';
+        });
+    }
+    // Si es Mercado Pago, crear preferencia y redirigir
+    else if (metodoPago === 'mercadopago') {
+        fetch('{% url "ventas:crear_preferencia_mp" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: 'carrito=' + encodeURIComponent(JSON.stringify(carrito)) +
+                  '&datos_envio=' + encodeURIComponent(JSON.stringify(datosEnvio))
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            console.log('Respuesta de Mercado Pago:', data);
+            
+            if (data.status === 'success') {
+                // Guardar datos del carrito y envío en sessionStorage para crear el pedido después del pago
+                sessionStorage.setItem('carrito_pago', JSON.stringify(carrito));
+                sessionStorage.setItem('notas_pago', notas);
+                sessionStorage.setItem('datos_envio_pago', JSON.stringify(datosEnvio));
+                
+                mostrarNotificacion('Redirigiendo a Mercado Pago...', 'info');
+                
+                // Redirigir a Mercado Pago
+                // En producción usar: data.init_point
+                // En pruebas usar: data.sandbox_init_point
+                setTimeout(function() {
+                    window.location.href = data.sandbox_init_point || data.init_point;
+                }, 1000);
+            } else {
+                var mensaje = data.message || 'Error al procesar el pago';
+                
+                // Mensajes más informativos
+                if (mensaje.includes('no está configurado')) {
+                    mensaje += '\n\n📝 Para configurar Mercado Pago:\n1. Ve a https://www.mercadopago.com.uy/developers/panel\n2. Obtén tus credenciales de prueba\n3. Agrégalas al archivo .env del proyecto';
+                }
+                
+                mostrarNotificacion(mensaje, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Confirmar Pedido';
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            mostrarNotificacion('Error al conectar con Mercado Pago', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> Confirmar Pedido';
+        });
+    } else {
+        // Para otros métodos de pago, procesar normalmente
+        fetch('{% url "ventas:finalizar_compra" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken
+            },
+            body: 'carrito=' + encodeURIComponent(JSON.stringify(carrito)) + 
+                  '&metodo_pago=' + encodeURIComponent(metodoPago) +
+                  '&notas=' + encodeURIComponent(notas) +
+                  '&datos_envio=' + encodeURIComponent(JSON.stringify(datosEnvio))
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            console.log('Respuesta del servidor:', data);
+            
+            if (data.status === 'success') {
+                // Limpiar carrito
+                localStorage.removeItem('carrito');
+                actualizarContadorCarrito();
+                
+                // Mostrar mensaje de éxito
+                mostrarNotificacion(data.message, 'success');
+                
+                // Redirigir a la página de pedidos
+                setTimeout(function() {
+                    window.location.href = '{% url "ventas:detalle_pedido" 0 %}'.replace('0', data.pedido_id);
+                }, 2000);
+            } else {
+                mostrarNotificacion(data.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Confirmar Pedido';
+            }
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            mostrarNotificacion('Error al procesar el pedido. Por favor intenta nuevamente.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle"></i> Confirmar Pedido';
+        });
+    }
+}
+</script>
+{% endblock %}

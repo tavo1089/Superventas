@@ -61,6 +61,16 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Django Media Files (imágenes de usuarios subidas)
+media/
+
+# Django Static Files (archivos compilados)
+staticfiles/
+static_root/
+
+# Entorno virtual específico del proyecto
+entorno_virtual/
+
 # Flask stuff:
 instance/
 .webassets-cache
