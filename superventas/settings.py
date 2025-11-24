@@ -34,14 +34,14 @@ SECRET_KEY = 'django-insecure-rd+4yr)@w*-az5^o@s(j@_8ja#3k07a5$vny+h&!5cwlsmh^5e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'andres-bioclimatic-sarina.ngrok-free.dev']
 
 # CSRF Configuration
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_SECURE = False  # True solo en producción con HTTPS
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000', 'https://andres-bioclimatic-sarina.ngrok-free.dev']
 
 
 # Application definition
@@ -170,6 +170,13 @@ try:
 except:
     STRIPE_PUBLIC_KEY = ''
     STRIPE_SECRET_KEY = ''
+
+# Configuración Groq (Chatbot con IA - Gratis)
+# Para obtener tu API Key gratis, ve a: https://console.groq.com/
+try:
+    GROQ_API_KEY = env('GROQ_API_KEY', default='')
+except:
+    GROQ_API_KEY = ''
 
 # Configuración de Email
 # Para Gmail: https://myaccount.google.com/apppasswords (necesitas contraseña de aplicación)
@@ -300,11 +307,11 @@ JAZZMIN_UI_TWEAKS = {
     "theme": "cosmo",
     "dark_mode_theme": None,
     "button_classes": {
-        "primary": "btn-primary",
+        "primary": "btn-secondary",
         "secondary": "btn-secondary",
-        "info": "btn-info",
+        "info": "btn-secondary",
         "warning": "btn-secondary",
-        "danger": "btn-danger",
-        "success": "btn-success"
+        "danger": "btn-secondary",
+        "success": "btn-secondary"
     }
 }

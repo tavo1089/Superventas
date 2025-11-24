@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .whatsapp_bot import whatsapp_webhook
+from .chatbot_ai import chatbot_respuesta
 
 app_name = 'ventas'
 
@@ -46,4 +47,6 @@ urlpatterns = [
     path('test-stripe-config/', views.test_stripe_config, name='test_stripe_config'),
     # WhatsApp Webhook
     path('webhook/whatsapp/', whatsapp_webhook, name='whatsapp_webhook'),
+    # Chatbot AI
+    path('chatbot/respuesta/', chatbot_respuesta, name='chatbot_respuesta'),
 ]

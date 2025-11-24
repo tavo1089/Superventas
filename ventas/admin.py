@@ -1,6 +1,70 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Perfil, Favorito, Pedido, DetallePedido
+from .models import Producto, Perfil, Favorito, Pedido, DetallePedido
+
+
+@admin.register(Producto)
+class ProductoAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'categoria', 'precio', 'descuento', 'stock_badge', 'activo', 'fecha_actualizacion']
+    search_fields = ['nombre', 'categoria', 'producto_id']
+    list_filter = ['categoria', 'activo', 'fecha_creacion']
+    list_editable = ['activo']
+    readonly_fields = ['fecha_creacion', 'fecha_actualizacion']
+    
+    fieldsets = (
+        ('Información del Producto', {
+            'fields': ('producto_id', 'nombre', 'categoria', 'descripcion', 'imagen_url', 'activo')
+        }),
+        ('Precios', {
+            'fields': ('precio', 'descuento')
+        }),
+        ('Inventario', {
+            'fields': ('stock', 'stock_minimo'),
+            'description': 'Gestiona el stock disponible y el nivel mínimo de alerta'
+        }),
+        ('Fechas', {
+            'fields': ('fecha_creacion', 'fecha_actualizacion'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def stock_badge(self, obj):
+        """Mostrar stock con colores según disponibilidad"""
+        if obj.sin_stock:
+            return format_html(
+                '<span style="background-color: #dc3545; color: white; padding: 5px 12px; border-radius: 3px; font-weight: bold;">❌ SIN STOCK</span>'
+            )
+        elif obj.stock_bajo:
+            return format_html(
+                '<span style="background-color: #ff9800; color: white; padding: 5px 12px; border-radius: 3px; font-weight: bold;">⚠️ BAJO ({} unidades)</span>',
+                obj.stock
+            )
+        else:
+            return format_html(
+                '<span style="background-color: #28a745; color: white; padding: 5px 12px; border-radius: 3px; font-weight: bold;">✓ {} unidades</span>',
+                obj.stock
+            )
+    stock_badge.short_description = 'Estado de Stock'
+    stock_badge.admin_order_field = 'stock'
+    
+    # Acciones masivas
+    actions = ['marcar_sin_stock', 'activar_productos', 'desactivar_productos']
+    
+    def marcar_sin_stock(self, request, queryset):
+        updated = queryset.update(stock=0)
+        self.message_user(request, f'{updated} producto(s) marcado(s) sin stock')
+    marcar_sin_stock.short_description = '📦 Marcar como Sin Stock'
+    
+    def activar_productos(self, request, queryset):
+        updated = queryset.update(activo=True)
+        self.message_user(request, f'{updated} producto(s) activado(s)')
+    activar_productos.short_description = '✅ Activar productos'
+    
+    def desactivar_productos(self, request, queryset):
+        updated = queryset.update(activo=False)
+        self.message_user(request, f'{updated} producto(s) desactivado(s)')
+    desactivar_productos.short_description = '❌ Desactivar productos'
+
 
 @admin.register(Perfil)
 class PerfilAdmin(admin.ModelAdmin):

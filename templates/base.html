@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -129,6 +129,9 @@
             background-color: var(--color-negro) !important;
             color: white !important;
             border-top: 4px solid var(--color-verde-principal);
+            position: relative;
+            width: 100%;
+            margin-top: auto;
         }
         
         footer p {
@@ -380,6 +383,22 @@
             background-color: #e9ecef;
             color: var(--color-negro);
             border-bottom-right-radius: 5px;
+        }
+        
+        /* Indicador de escribiendo */
+        .typing-indicator .message-content {
+            background-color: var(--color-verde-principal);
+            color: white;
+        }
+        
+        .typing-indicator .dots {
+            animation: blink 1.4s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 20% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
         }
         
         .quick-replies {
@@ -947,19 +966,29 @@
                         Soy tu asistente virtual de Superventas. ¿En qué puedo ayudarte hoy?
                     </div>
                 </div>
-                <div class="quick-replies">
-                    <button class="quick-reply-btn" onclick="sendQuickReply('productos')">
-                        🛍️ Ver productos
+                
+                <!-- Botones de acceso rápido en grid 2x2 -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px 10px;">
+                    <button class="quick-reply-btn" onclick="sendQuickReply('productos')" style="padding: 12px 10px;">
+                        🛍️ Productos
                     </button>
-                    <button class="quick-reply-btn" onclick="sendQuickReply('ofertas')">
+                    <button class="quick-reply-btn" onclick="sendQuickReply('ofertas')" style="padding: 12px 10px;">
                         🏷️ Ofertas
                     </button>
-                    <button class="quick-reply-btn" onclick="sendQuickReply('envios')">
+                    <button class="quick-reply-btn" onclick="sendQuickReply('envios')" style="padding: 12px 10px;">
                         📦 Envíos
                     </button>
-                    <button class="quick-reply-btn" onclick="sendQuickReply('soporte')">
+                    <button class="quick-reply-btn" onclick="sendQuickReply('soporte')" style="padding: 12px 10px;">
                         💬 Soporte
                     </button>
+                </div>
+                
+                <!-- Separador y botón de WhatsApp -->
+                <div style="text-align: center; padding: 15px; border-top: 2px solid #e9ecef;">
+                    <a href="https://wa.me/59897403564" target="_blank" style="background: linear-gradient(135deg, #25D366 0%, #20BA5A 100%); border: none; padding: 14px 24px; border-radius: 30px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4); font-size: 0.95rem; color: white; width: 100%; max-width: 280px;">
+                        <i class="bi bi-whatsapp" style="font-size: 1.4rem;"></i>
+                        <span>Chatear por WhatsApp</span>
+                    </a>
                 </div>
             </div>
             
@@ -1003,7 +1032,7 @@
             chatWindow.classList.toggle('active');
         }
         
-        function sendMessage() {
+        async function sendMessage() {
             const input = document.getElementById('chatbot-input');
             const message = input.value.trim();
             
@@ -1013,40 +1042,54 @@
             addMessage(message, 'user');
             input.value = '';
             
-            // Simular respuesta del bot
-            setTimeout(() => {
-                const botResponse = getBotResponse(message);
-                addMessage(botResponse, 'bot');
-            }, 1000);
+            // Mostrar indicador de "escribiendo..."
+            addTypingIndicator();
+            
+            try {
+                // Llamar a la API del chatbot con IA
+                const response = await fetch('/chatbot/respuesta/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mensaje: message })
+                });
+                
+                const data = await response.json();
+                
+                // Eliminar indicador de "escribiendo..."
+                removeTypingIndicator();
+                
+                // Agregar respuesta del bot
+                addMessage(data.respuesta || '¡Hola! Escríbeme tu consulta.', 'bot');
+            } catch (error) {
+                console.error('Error:', error);
+                removeTypingIndicator();
+                addMessage('Disculpa, estoy teniendo problemas. ¿Podrías intentarlo de nuevo?', 'bot');
+            }
         }
         
         function sendQuickReply(type) {
             let message = '';
-            let response = '';
             
             switch(type) {
                 case 'productos':
                     message = '¿Qué productos tienen disponibles?';
-                    response = 'Tenemos una amplia variedad de productos en las siguientes categorías: Tecnología, Electrodomésticos, Belleza, Ferretería, Bebé y Niños, Aire Libre, Entretenimiento y Salud. ¿Te gustaría ver alguna categoría en particular?';
                     break;
                 case 'ofertas':
                     message = '¿Tienen ofertas activas?';
-                    response = '¡Sí! Tenemos ofertas especiales con descuentos de hasta el 50% en productos seleccionados. Revisa nuestra sección de "Ofertas Especiales" en la página principal. 🏷️';
                     break;
                 case 'envios':
                     message = '¿Cómo funcionan los envíos?';
-                    response = 'Realizamos envíos a todo el país. Envío gratis en compras superiores a $100. El tiempo de entrega es de 3-5 días hábiles. 📦';
                     break;
                 case 'soporte':
-                    message = 'Necesito soporte';
-                    response = 'Estoy aquí para ayudarte. Puedes escribirme tu consulta o contactarnos por WhatsApp, email o teléfono. ¿En qué puedo asistirte? 💬';
+                    message = 'Necesito ayuda con un pedido';
                     break;
             }
             
-            addMessage(message, 'user');
-            setTimeout(() => {
-                addMessage(response, 'bot');
-            }, 1000);
+            // Simular que el usuario escribió el mensaje
+            document.getElementById('chatbot-input').value = message;
+            sendMessage();
         }
         
         function addMessage(text, sender) {
@@ -1065,23 +1108,20 @@
             chatBody.scrollTop = chatBody.scrollHeight;
         }
         
-        function getBotResponse(message) {
-            const lowerMessage = message.toLowerCase();
-            
-            if (lowerMessage.includes('hola') || lowerMessage.includes('buenos')) {
-                return '¡Hola! 👋 ¿En qué puedo ayudarte hoy?';
-            } else if (lowerMessage.includes('precio') || lowerMessage.includes('costo')) {
-                return 'Nuestros precios son muy competitivos. Puedes ver los precios actualizados en cada producto. ¿Buscas algo en particular?';
-            } else if (lowerMessage.includes('envio') || lowerMessage.includes('entrega')) {
-                return 'Realizamos envíos a todo el país. Envío gratis en compras superiores a $100. Tiempo de entrega: 3-5 días hábiles. 📦';
-            } else if (lowerMessage.includes('pago') || lowerMessage.includes('tarjeta')) {
-                return 'Aceptamos todos los métodos de pago: tarjetas de crédito/débito, transferencias bancarias y pagos en efectivo contra entrega. 💳';
-            } else if (lowerMessage.includes('horario')) {
-                return 'Nuestro horario de atención es de Lunes a Viernes de 9:00 AM a 6:00 PM. Sábados de 9:00 AM a 2:00 PM. 🕐';
-            } else if (lowerMessage.includes('gracias')) {
-                return '¡De nada! Estoy aquí para ayudarte. ¿Hay algo más en lo que pueda asistirte? 😊';
-            } else {
-                return 'Interesante pregunta. Para una respuesta más detallada, puedes contactarnos por WhatsApp o llamarnos directamente. ¿Hay algo más en lo que pueda ayudarte?';
+        function addTypingIndicator() {
+            const chatBody = document.getElementById('chatbot-body');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message typing-indicator';
+            typingDiv.id = 'typing-indicator';
+            typingDiv.innerHTML = '<div class="message-content">Escribiendo<span class="dots">...</span></div>';
+            chatBody.appendChild(typingDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+        
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
             }
         }
         
@@ -1247,3 +1287,4 @@
     {% block extra_js %}{% endblock %}
 </body>
 </html>
+

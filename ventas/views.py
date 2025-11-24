@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from .models import Favorito, Pedido, DetallePedido
+from .models import Favorito, Pedido, DetallePedido, Producto
 from .forms import UserUpdateForm, PerfilUpdateForm, CambiarPasswordForm
 import re
 import uuid
@@ -1485,6 +1485,19 @@ def finalizar_compra(request):
             
             subtotal = precio_final * cantidad
             
+            # Descontar del stock
+            try:
+                producto_db = Producto.objects.get(producto_id=int(item.get('id', 0)))
+                if producto_db.stock >= cantidad:
+                    producto_db.stock -= cantidad
+                    producto_db.save()
+                else:
+                    # Si no hay suficiente stock, continuar pero registrar advertencia
+                    print(f"Advertencia: Stock insuficiente para {producto_db.nombre}. Stock actual: {producto_db.stock}, solicitado: {cantidad}")
+            except Producto.DoesNotExist:
+                # Si el producto no existe en la BD, continuar sin descontar
+                print(f"Advertencia: Producto ID {item.get('id')} no encontrado en inventario")
+            
             DetallePedido.objects.create(
                 pedido=pedido,
                 producto_id=int(item.get('id', 0)),
@@ -1949,14 +1962,28 @@ def pago_exitoso_stripe(request):
             
             # Crear detalles del pedido
             for item in carrito:
+                # Descontar del stock
+                try:
+                    producto_db = Producto.objects.get(producto_id=int(item.get('id', 0)))
+                    cantidad = int(item['cantidad'])
+                    if producto_db.stock >= cantidad:
+                        producto_db.stock -= cantidad
+                        producto_db.save()
+                    else:
+                        print(f"Advertencia: Stock insuficiente para {producto_db.nombre}. Stock actual: {producto_db.stock}, solicitado: {cantidad}")
+                except Producto.DoesNotExist:
+                    print(f"Advertencia: Producto ID {item.get('id')} no encontrado en inventario")
+                
                 DetallePedido.objects.create(
                     pedido=pedido,
+                    producto_id=int(item.get('id', 0)),
                     producto_nombre=item['nombre'],
                     producto_imagen=item['imagen'],
                     producto_categoria=item['categoria'],
                     cantidad=int(item['cantidad']),
                     precio_unitario=float(item['precio']),
-                    descuento=int(item.get('descuento', 0))
+                    descuento=int(item.get('descuento', 0)),
+                    subtotal=float(item['precioFinal']) * int(item['cantidad'])
                 )
             
             # Enviar email de confirmación

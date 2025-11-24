@@ -3,6 +3,54 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
+class Producto(models.Model):
+    """Modelo para gestionar el inventario y stock de productos"""
+    producto_id = models.IntegerField(unique=True, help_text='ID del producto en la API externa')
+    nombre = models.CharField(max_length=255)
+    categoria = models.CharField(max_length=100)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    descuento = models.IntegerField(default=0, help_text='Porcentaje de descuento')
+    
+    # Control de stock
+    stock = models.IntegerField(default=0, help_text='Cantidad disponible en inventario')
+    stock_minimo = models.IntegerField(default=5, help_text='Alerta cuando el stock sea menor a este valor')
+    
+    # Información adicional
+    imagen_url = models.URLField(blank=True, null=True)
+    descripcion = models.TextField(blank=True, null=True)
+    activo = models.BooleanField(default=True, help_text='Desactivar producto sin eliminarlo')
+    
+    # Fechas
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f'{self.nombre} (Stock: {self.stock})'
+    
+    @property
+    def precio_con_descuento(self):
+        """Calcula el precio final con descuento aplicado"""
+        if self.descuento > 0:
+            return self.precio * (1 - self.descuento / 100)
+        return self.precio
+    
+    @property
+    def stock_bajo(self):
+        """Verifica si el stock está por debajo del mínimo"""
+        return self.stock <= self.stock_minimo
+    
+    @property
+    def sin_stock(self):
+        """Verifica si no hay stock disponible"""
+        return self.stock <= 0
+    
+    class Meta:
+        verbose_name = 'Producto'
+        verbose_name_plural = 'Productos'
+        ordering = ['nombre']
+
+
 class Perfil(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
     foto = models.ImageField(upload_to='perfiles/', blank=True, null=True)
